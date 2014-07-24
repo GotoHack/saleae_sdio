@@ -24,6 +24,12 @@ void SDIOAnalyzer::WorkerThread()
 	mSampleRateHz = GetSampleRate();
 
 	mSerial = GetAnalyzerChannelData( mSettings->mInputChannel );
+	mClock = GetAnalyzerChannelData( mSettings->mClockChannel );
+	mCmd = GetAnalyzerChannelData( mSettings->mCmdChannel );
+	mData0 = GetAnalyzerChannelData( mSettings->mD0Channel );
+	mData1 = GetAnalyzerChannelData( mSettings->mD1Channel );
+	mData2 = GetAnalyzerChannelData( mSettings->mD2Channel );
+	mData3 = GetAnalyzerChannelData( mSettings->mD3Channel );
 
 	if( mSerial->GetBitState() == BIT_LOW )
 		mSerial->AdvanceToNextEdge();

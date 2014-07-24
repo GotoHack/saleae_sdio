@@ -23,6 +23,12 @@ protected: //vars
 	std::auto_ptr< SDIOAnalyzerSettings > mSettings;
 	std::auto_ptr< SDIOAnalyzerResults > mResults;
 	AnalyzerChannelData* mSerial;
+	AnalyzerChannelData* mClock;    //a
+	AnalyzerChannelData* mCmd;      //b
+	AnalyzerChannelData* mData0;    //c
+	AnalyzerChannelData* mData1;
+	AnalyzerChannelData* mData2;
+	AnalyzerChannelData* mData3;
 
 	SDIOSimulationDataGenerator mSimulationDataGenerator;
 	bool mSimulationInitilized;
