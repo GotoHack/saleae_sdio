@@ -1,3 +1,6 @@
-.swp
+.*.swp
+*.swp
 debug
 release
+tags
+*cscope.out
