@@ -3,24 +3,22 @@
 
 
 SDIOAnalyzerSettings::SDIOAnalyzerSettings()
-:	mInputChannel( UNDEFINED_CHANNEL ),
-	mBitRate( 9600 ),
- 	mClockChannel( UNDEFINED_CHANNEL ),
+:   mClockChannel( UNDEFINED_CHANNEL ),
  	mCmdChannel( UNDEFINED_CHANNEL ),
  	mD0Channel( UNDEFINED_CHANNEL ),
  	mD1Channel( UNDEFINED_CHANNEL ),
  	mD2Channel( UNDEFINED_CHANNEL ),
  	mD3Channel( UNDEFINED_CHANNEL )
 {
-	mInputChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
-	mInputChannelInterface->SetTitleAndTooltip( "Serial", "Standard SDIO Analyzer" );
-	mInputChannelInterface->SetChannel( mInputChannel );
+	// mInputChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
+	// mInputChannelInterface->SetTitleAndTooltip( "Serial", "Standard SDIO Analyzer" );
+	// mInputChannelInterface->SetChannel( mInputChannel );
 
-	mBitRateInterface.reset( new AnalyzerSettingInterfaceInteger() );
-	mBitRateInterface->SetTitleAndTooltip( "Bit Rate (Bits/S)",  "Specify the bit rate in bits per second." );
-	mBitRateInterface->SetMax( 6000000 );
-	mBitRateInterface->SetMin( 1 );
-	mBitRateInterface->SetInteger( mBitRate );
+	// mBitRateInterface.reset( new AnalyzerSettingInterfaceInteger() );
+	// mBitRateInterface->SetTitleAndTooltip( "Bit Rate (Bits/S)",  "Specify the bit rate in bits per second." );
+	// mBitRateInterface->SetMax( 6000000 );
+	// mBitRateInterface->SetMin( 1 );
+	// mBitRateInterface->SetInteger( mBitRate );
 
 	mClockChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
 	mClockChannelInterface->SetTitleAndTooltip( "Clock", "Standard SDIO Analyzer" );
@@ -46,8 +44,8 @@ SDIOAnalyzerSettings::SDIOAnalyzerSettings()
 	mD3ChannelInterface->SetTitleAndTooltip( "Data 3", "Standard SDIO Analyzer" );
 	mD3ChannelInterface->SetChannel( mD3Channel );
 
-	AddInterface( mInputChannelInterface.get() );
-	AddInterface( mBitRateInterface.get() );
+	// AddInterface( mInputChannelInterface.get() );
+	// AddInterface( mBitRateInterface.get() );
 
 	AddInterface( mClockChannelInterface.get() );
 	AddInterface( mCmdChannelInterface.get() );
@@ -61,7 +59,7 @@ SDIOAnalyzerSettings::SDIOAnalyzerSettings()
 	AddExportExtension( 0, "csv", "csv" );
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Serial", false );
+	// AddChannel( mInputChannel, "Serial", false );
 	AddChannel( mClockChannel, "Clock", false );
 	AddChannel( mCmdChannel, "CMD", false );
 	AddChannel( mD0Channel, "Data 0", false );
@@ -76,8 +74,8 @@ SDIOAnalyzerSettings::~SDIOAnalyzerSettings()
 
 bool SDIOAnalyzerSettings::SetSettingsFromInterfaces()
 {
-	mInputChannel = mInputChannelInterface->GetChannel();
-	mBitRate = mBitRateInterface->GetInteger();
+	// mInputChannel = mInputChannelInterface->GetChannel();
+	// mBitRate = mBitRateInterface->GetInteger();
 
 	mClockChannel = mClockChannelInterface->GetChannel();
 	mCmdChannel = mCmdChannelInterface->GetChannel();
@@ -85,10 +83,9 @@ bool SDIOAnalyzerSettings::SetSettingsFromInterfaces()
 	mD1Channel = mD1ChannelInterface->GetChannel();
 	mD2Channel = mD2ChannelInterface->GetChannel();
 	mD3Channel = mD3ChannelInterface->GetChannel();
-	//mBitRate = mBitRateInterface->GetInteger();
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Original", true );
+	// AddChannel( mInputChannel, "Original", true );
 	AddChannel( mClockChannel, "Clock", true );
 	AddChannel( mCmdChannel, "Cmd", true );
 	AddChannel( mD0Channel, "Data 0", true );
@@ -101,8 +98,8 @@ bool SDIOAnalyzerSettings::SetSettingsFromInterfaces()
 
 void SDIOAnalyzerSettings::UpdateInterfacesFromSettings()
 {
-	mInputChannelInterface->SetChannel( mInputChannel );
-	mBitRateInterface->SetInteger( mBitRate );
+	// mInputChannelInterface->SetChannel( mInputChannel );
+	// mBitRateInterface->SetInteger( mBitRate );
 
 	mClockChannelInterface->SetChannel( mClockChannel );
 	mCmdChannelInterface->SetChannel( mCmdChannel );
@@ -110,7 +107,6 @@ void SDIOAnalyzerSettings::UpdateInterfacesFromSettings()
 	mD1ChannelInterface->SetChannel( mD1Channel );
 	mD2ChannelInterface->SetChannel( mD2Channel );
 	mD3ChannelInterface->SetChannel( mD3Channel );
-	//mBitRateInterface->SetInteger( mBitRate );
 }
 
 void SDIOAnalyzerSettings::LoadSettings( const char* settings )
@@ -118,8 +114,8 @@ void SDIOAnalyzerSettings::LoadSettings( const char* settings )
 	SimpleArchive text_archive;
 	text_archive.SetString( settings );
 
-	text_archive >> mInputChannel;
-	text_archive >> mBitRate;
+	// text_archive >> mInputChannel;
+	// text_archive >> mBitRate;
 
 	text_archive >> mClockChannel;
 	text_archive >> mCmdChannel;
@@ -127,10 +123,9 @@ void SDIOAnalyzerSettings::LoadSettings( const char* settings )
 	text_archive >> mD1Channel;
 	text_archive >> mD2Channel;
 	text_archive >> mD3Channel;
-	//text_archive >> mBitRate;
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Original", true );
+	//AddChannel( mInputChannel, "Original", true );
 	AddChannel( mClockChannel, "Clock", true );
 	AddChannel( mCmdChannel, "Cmd", true );
 	AddChannel( mD0Channel, "Data 0", true );
@@ -145,8 +140,9 @@ const char* SDIOAnalyzerSettings::SaveSettings()
 {
 	SimpleArchive text_archive;
 
-	text_archive << mInputChannel;
-	text_archive << mBitRate;
+	// text_archive << mInputChannel;
+	// text_archive << mBitRate;
+
 	text_archive << mClockChannel;
 	text_archive << mCmdChannel;
 	text_archive << mD0Channel;

@@ -19,11 +19,12 @@ void SDIOAnalyzer::WorkerThread()
 {
 	mResults.reset( new SDIOAnalyzerResults( this, mSettings.get() ) );
 	SetAnalyzerResults( mResults.get() );
-	mResults->AddChannelBubblesWillAppearOn( mSettings->mInputChannel );
+	//mResults->AddChannelBubblesWillAppearOn( mSettings->mInputChannel );
+	mResults->AddChannelBubblesWillAppearOn( mSettings->mClockChannel );
 
 	mSampleRateHz = GetSampleRate();
 
-	mSerial = GetAnalyzerChannelData( mSettings->mInputChannel );
+	//mSerial = GetAnalyzerChannelData( mSettings->mInputChannel );
 	mClock = GetAnalyzerChannelData( mSettings->mClockChannel );
 	mCmd = GetAnalyzerChannelData( mSettings->mCmdChannel );
 	mData0 = GetAnalyzerChannelData( mSettings->mD0Channel );
@@ -31,43 +32,44 @@ void SDIOAnalyzer::WorkerThread()
 	mData2 = GetAnalyzerChannelData( mSettings->mD2Channel );
 	mData3 = GetAnalyzerChannelData( mSettings->mD3Channel );
 
-	if( mSerial->GetBitState() == BIT_LOW )
-		mSerial->AdvanceToNextEdge();
+    // wait for CMD to be high
+	if( mCmd->GetBitState() == BIT_LOW )
+		mCmd->AdvanceToNextEdge();
 
-	U32 samples_per_bit = mSampleRateHz / mSettings->mBitRate;
-	U32 samples_to_first_center_of_first_data_bit = U32( 1.5 * double( mSampleRateHz ) / double( mSettings->mBitRate ) );
+	// U32 samples_per_bit = mSampleRateHz / mSettings->mBitRate;
+	// U32 samples_to_first_center_of_first_data_bit = U32( 1.5 * double( mSampleRateHz ) / double( mSettings->mBitRate ) );
 
 	for( ; ; )
 	{
 		U8 data = 0;
 		U8 mask = 1 << 7;
 		
-		mSerial->AdvanceToNextEdge(); //falling edge -- beginning of the start bit
+		// mSerial->AdvanceToNextEdge(); //falling edge -- beginning of the start bit
 
-		U64 starting_sample = mSerial->GetSampleNumber();
+		// U64 starting_sample = mSerial->GetSampleNumber();
 
-		mSerial->Advance( samples_to_first_center_of_first_data_bit );
+		// mSerial->Advance( samples_to_first_center_of_first_data_bit );
 
-		for( U32 i=0; i<8; i++ )
-		{
-			//let's put a dot exactly where we sample this bit:
-			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mInputChannel );
+		// for( U32 i=0; i<8; i++ )
+		// {
+		// 	//let's put a dot exactly where we sample this bit:
+		// 	mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mInputChannel );
 
-			if( mSerial->GetBitState() == BIT_HIGH )
-				data |= mask;
+		// 	if( mSerial->GetBitState() == BIT_HIGH )
+		// 		data |= mask;
 
-			mSerial->Advance( samples_per_bit );
+		// 	mSerial->Advance( samples_per_bit );
 
-			mask = mask >> 1;
-		}
+		// 	mask = mask >> 1;
+		// }
 
 
 		//we have a byte to save. 
 		Frame frame;
 		frame.mData1 = data;
 		frame.mFlags = 0;
-		frame.mStartingSampleInclusive = starting_sample;
-		frame.mEndingSampleInclusive = mSerial->GetSampleNumber();
+		//frame.mStartingSampleInclusive = starting_sample;
+		//frame.mEndingSampleInclusive = mSerial->GetSampleNumber();
 
 		mResults->AddFrame( frame );
 		mResults->CommitResults();
@@ -93,7 +95,8 @@ U32 SDIOAnalyzer::GenerateSimulationData( U64 minimum_sample_index, U32 device_s
 
 U32 SDIOAnalyzer::GetMinimumSampleRateHz()
 {
-	return mSettings->mBitRate * 4;
+	//return mSettings->mBitRate * 4;
+	return 1000000;
 }
 
 const char* SDIOAnalyzer::GetAnalyzerName() const

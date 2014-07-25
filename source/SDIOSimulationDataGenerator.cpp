@@ -18,7 +18,7 @@ void SDIOSimulationDataGenerator::Initialize( U32 simulation_sample_rate, SDIOAn
 	mSimulationSampleRateHz = simulation_sample_rate;
 	mSettings = settings;
 
-	mSerialSimulationData.SetChannel( mSettings->mInputChannel );
+	// mSerialSimulationData.SetChannel( mSettings->mInputChannel );
 	mSerialSimulationData.SetSampleRate( simulation_sample_rate );
 	mSerialSimulationData.SetInitialBitState( BIT_HIGH );
 }
@@ -38,7 +38,8 @@ U32 SDIOSimulationDataGenerator::GenerateSimulationData( U64 largest_sample_requ
 
 void SDIOSimulationDataGenerator::CreateSerialByte()
 {
-	U32 samples_per_bit = mSimulationSampleRateHz / mSettings->mBitRate;
+	//U32 samples_per_bit = mSimulationSampleRateHz / mSettings->mBitRate;
+	U32 samples_per_bit = 16;
 
 	U8 byte = mSerialText[ mStringIndex ];
 	mStringIndex++;
