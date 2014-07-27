@@ -37,6 +37,12 @@ protected: //vars
 	U32 mSampleRateHz;
 	U32 mStartOfStopBitOffset;
 	U32 mEndOfStopBitOffset;
+
+    // jonathan vars
+    U64 currentSampleNo;
+
+private: // internal functions
+    U64 AdvanceAllLinesToNextStartBit();
 };
 
 extern "C" ANALYZER_EXPORT const char* __cdecl GetAnalyzerName();

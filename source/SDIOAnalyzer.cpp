@@ -1,11 +1,13 @@
 #include "SDIOAnalyzer.h"
 #include "SDIOAnalyzerSettings.h"
 #include <AnalyzerChannelData.h>
+#include <AnalyzerHelpers.h>
 
 SDIOAnalyzer::SDIOAnalyzer()
 :	Analyzer(),  
 	mSettings( new SDIOAnalyzerSettings() ),
-	mSimulationInitilized( false )
+	mSimulationInitilized( false ),
+    currentSampleNo(0)
 {
 	SetAnalyzerSettings( mSettings.get() );
 }
@@ -18,6 +20,12 @@ SDIOAnalyzer::~SDIOAnalyzer()
 void SDIOAnalyzer::WorkerThread()
 {
 	mResults.reset( new SDIOAnalyzerResults( this, mSettings.get() ) );
+	DataBuilder cmdData;
+    U64 cmdValue;
+    U32 i;
+    BitState cmdBitState;
+
+    
 	SetAnalyzerResults( mResults.get() );
 	//mResults->AddChannelBubblesWillAppearOn( mSettings->mInputChannel );
 	mResults->AddChannelBubblesWillAppearOn( mSettings->mClockChannel );
@@ -33,48 +41,112 @@ void SDIOAnalyzer::WorkerThread()
 	mData3 = GetAnalyzerChannelData( mSettings->mD3Channel );
 
     // wait for CMD to be high
-	if( mCmd->GetBitState() == BIT_LOW )
+	if( mCmd->GetBitState() == BIT_LOW ) {
 		mCmd->AdvanceToNextEdge();
+    }
+
+    cmdData.Reset(&cmdValue, AnalyzerEnums::MsbFirst, 48);
 
 	// U32 samples_per_bit = mSampleRateHz / mSettings->mBitRate;
 	// U32 samples_to_first_center_of_first_data_bit = U32( 1.5 * double( mSampleRateHz ) / double( mSettings->mBitRate ) );
 
 	for( ; ; )
 	{
-		U8 data = 0;
-		U8 mask = 1 << 7;
-		
-		// mSerial->AdvanceToNextEdge(); //falling edge -- beginning of the start bit
+        // we know cmd is high, wait till the next transition, which should be the start bit
+        AdvanceAllLinesToNextStartBit();
+        cmdData.Reset(&cmdValue, AnalyzerEnums::MsbFirst, 48);
+        
+        // now we're at the start bit, we start using our clock as our sample generator
+        for (i = 0; i < 48; i++)
+        {
+            cmdBitState = mCmd->GetBitState();
+            cmdData.AddBit(cmdBitState);
 
-		// U64 starting_sample = mSerial->GetSampleNumber();
+            
+            if( mClock->GetBitState() == BIT_LOW ) {
+                mClock->AdvanceToNextEdge();
+            }
+            mClock->AdvanceToNextEdge();
 
-		// mSerial->Advance( samples_to_first_center_of_first_data_bit );
+            // now get our position, based on clock
+            currentSampleNo = mClock->GetSampleNumber();
+            mCmd->AdvanceToAbsPosition(currentSampleNo);
 
-		// for( U32 i=0; i<8; i++ )
-		// {
-		// 	//let's put a dot exactly where we sample this bit:
-		// 	mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mInputChannel );
+        }
 
-		// 	if( mSerial->GetBitState() == BIT_HIGH )
-		// 		data |= mask;
+        currentSampleNo = mClock->GetSampleNumber();
 
-		// 	mSerial->Advance( samples_per_bit );
+        // move all the data lines to current sample
+        mData0->AdvanceToAbsPosition(currentSampleNo);
+        mData1->AdvanceToAbsPosition(currentSampleNo);
+        mData2->AdvanceToAbsPosition(currentSampleNo);
+        mData3->AdvanceToAbsPosition(currentSampleNo);
+		// U8 data = 0;
+		// U8 mask = 1 << 7;
+		// 
+		// // mSerial->AdvanceToNextEdge(); //falling edge -- beginning of the start bit
 
-		// 	mask = mask >> 1;
-		// }
+		// // U64 starting_sample = mSerial->GetSampleNumber();
+
+		// // mSerial->Advance( samples_to_first_center_of_first_data_bit );
+
+		// // for( U32 i=0; i<8; i++ )
+		// // {
+		// // 	//let's put a dot exactly where we sample this bit:
+		// // 	mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mInputChannel );
+
+		// // 	if( mSerial->GetBitState() == BIT_HIGH )
+		// // 		data |= mask;
+
+		// // 	mSerial->Advance( samples_per_bit );
+
+		// // 	mask = mask >> 1;
+		// // }
 
 
-		//we have a byte to save. 
-		Frame frame;
-		frame.mData1 = data;
-		frame.mFlags = 0;
-		//frame.mStartingSampleInclusive = starting_sample;
-		//frame.mEndingSampleInclusive = mSerial->GetSampleNumber();
+		// //we have a byte to save. 
+		// Frame frame;
+		// frame.mData1 = data;
+		// frame.mFlags = 0;
+		// //frame.mStartingSampleInclusive = starting_sample;
+		// //frame.mEndingSampleInclusive = mSerial->GetSampleNumber();
 
-		mResults->AddFrame( frame );
-		mResults->CommitResults();
-		ReportProgress( frame.mEndingSampleInclusive );
+		// mResults->AddFrame( frame );
+		// mResults->CommitResults();
+		// ReportProgress( frame.mEndingSampleInclusive );
 	}
+}
+
+U64 SDIOAnalyzer::AdvanceAllLinesToNextStartBit()
+{
+    // make sure we're on a high bit
+	if( mCmd->GetBitState() == BIT_LOW ) {
+		mCmd->AdvanceToNextEdge();
+    }
+
+    // now advance to start bit which is a falling bit
+    mCmd->AdvanceToNextEdge();
+
+    currentSampleNo = mCmd->GetSampleNumber();
+
+    // but we want to sample on the rising edge of the clock.  Advance the clock to
+    // our sample number, check the clock, it should be low.  advance the clock to next edge
+    mClock->AdvanceToAbsPosition(currentSampleNo);
+	if( mClock->GetBitState() == BIT_LOW ) {
+		mClock->AdvanceToNextEdge();
+    }
+
+    // now get our position, based on clock
+    currentSampleNo = mClock->GetSampleNumber();
+
+    // move all the lines to current sample
+    mCmd->AdvanceToAbsPosition(currentSampleNo);
+    mData0->AdvanceToAbsPosition(currentSampleNo);
+    mData1->AdvanceToAbsPosition(currentSampleNo);
+    mData2->AdvanceToAbsPosition(currentSampleNo);
+    mData3->AdvanceToAbsPosition(currentSampleNo);
+
+    return currentSampleNo;
 }
 
 bool SDIOAnalyzer::NeedsRerun()
