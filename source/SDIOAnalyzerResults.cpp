@@ -33,6 +33,7 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
 
 	U64 trigger_sample = mAnalyzer->GetTriggerSample();
 	U32 sample_rate = mAnalyzer->GetSampleRate();
+    double timeStamp = 0.0;
 
 	file_stream << "Time [s],Value" << std::endl;
 
@@ -40,15 +41,31 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
 	for( U32 i=0; i < num_frames; i++ )
 	{
 		Frame frame = GetFrame( i );
+        U64 cmdType = frame.mData1;
 		
 		char time_str[128];
-		AnalyzerHelpers::GetTimeString( frame.mStartingSampleInclusive, trigger_sample, sample_rate, time_str, 128 );
+		// AnalyzerHelpers::GetTimeString( frame.mStartingSampleInclusive, trigger_sample, sample_rate, time_str, 128 );
+        timeStamp = frame.mStartingSampleInclusive;
+        timeStamp -= trigger_sample;
+        timeStamp /= sample_rate;
+        sprintf(time_str, "%0.10f", timeStamp);
 
 		char number_str[128];
+		char number_str2[128];
+        char dir_str[128];
 		//AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
-		AnalyzerHelpers::GetNumberString( frame.mData1, Hexadecimal, 8, number_str, 128 );
+		// AnalyzerHelpers::GetNumberString( frame.mData1, Hexadecimal, 8, number_str, 128 );
+		// AnalyzerHelpers::GetNumberString( frame.mType, Decimal, 8, number_str2, 128 );
+        sprintf(number_str, "%012llX", frame.mData1);
+        sprintf(number_str2, "%02d", frame.mType);
+        if (frame.mFlags == 1){
+            sprintf(dir_str, "Host -> Card");
+        }else {
+            sprintf(dir_str, "Response ");
+        }
 
-		file_stream << time_str << "," << "\t"<<number_str << std::endl;
+
+		file_stream << time_str << "," << "\t"<<number_str <<", CMD: "<< number_str2 <<",     "<<dir_str << std::endl;
 
 		if( UpdateExportProgressAndCheckForCancel( i, num_frames ) == true )
 		{

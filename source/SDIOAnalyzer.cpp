@@ -81,19 +81,36 @@ void SDIOAnalyzer::WorkerThread()
         mData1->AdvanceToAbsPosition(currentSampleNo);
         mData2->AdvanceToAbsPosition(currentSampleNo);
         mData3->AdvanceToAbsPosition(currentSampleNo);
+        
+        Frame frame = ParseCurrentCommand(cmdValue, currentSampleNo);
 
-
-		//we have a byte to save. 
-		Frame frame;
-		frame.mData1 = cmdValue;
-		frame.mFlags = 0;
-		frame.mStartingSampleInclusive = frameStartSample;
-		frame.mEndingSampleInclusive = currentSampleNo;
-
-		mResults->AddFrame( frame );
-		mResults->CommitResults();
-		ReportProgress( frame.mEndingSampleInclusive );
 	}
+}
+
+Frame SDIOAnalyzer::ParseCurrentCommand(U64 cmdValue, U64 currentSample)
+{
+    //we have a byte to save. 
+    Frame frame;
+    U64 tmp = cmdValue;
+    frame.mData1 = cmdValue;
+    frame.mFlags = 0;
+    frame.mStartingSampleInclusive = frameStartSample;
+    frame.mEndingSampleInclusive = currentSampleNo;
+
+    tmp >>= 40;
+    frame.mType = (U8)tmp & 0x3f;
+    if (tmp & 0x40) {
+        frame.mFlags = 1;
+    }
+    else {
+        frame.mFlags = 0;
+    }
+
+
+
+    mResults->AddFrame( frame );
+    mResults->CommitResults();
+    ReportProgress( frame.mEndingSampleInclusive );
 }
 
 U64 SDIOAnalyzer::AdvanceAllLinesToNextStartBit()

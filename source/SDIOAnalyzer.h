@@ -44,6 +44,7 @@ protected: //vars
 
 private: // internal functions
     U64 AdvanceAllLinesToNextStartBit();
+    Frame ParseCurrentCommand(U64 cmdValue, U64 currentSample);
 };
 
 extern "C" ANALYZER_EXPORT const char* __cdecl GetAnalyzerName();
