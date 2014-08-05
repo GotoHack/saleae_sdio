@@ -4,6 +4,7 @@
 #include "SDIOAnalyzerSettings.h"
 #include <iostream>
 #include <fstream>
+#include "SDIOParser.h"
 
 SDIOAnalyzerResults::SDIOAnalyzerResults( SDIOAnalyzer* analyzer, SDIOAnalyzerSettings* settings )
 :	AnalyzerResults(),
@@ -65,7 +66,7 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
         }
 
 
-		file_stream << time_str << "," << "\t"<<number_str <<", CMD: "<< number_str2 <<",     "<<dir_str << std::endl;
+		file_stream << time_str << "," << "\t"<<number_str <<", CMD: "<< number_str2 <<",     "<<dir_str << " -- "<<parse_str(frame.mData1) << std::endl;
 
 		if( UpdateExportProgressAndCheckForCancel( i, num_frames ) == true )
 		{
@@ -102,6 +103,7 @@ void SDIOAnalyzerResults::GenerateTransactionTabularText( U64 transaction_id, Di
 
 char* SDIOAnalyzerResults::ParseCommand(U64 data)
 {
+    return (char* )parse_str(data);
 }
 char* SDIOAnalyzerResults::ParseCmd52(U64 data)
 {

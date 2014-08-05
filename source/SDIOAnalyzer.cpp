@@ -63,9 +63,8 @@ void SDIOAnalyzer::WorkerThread()
             cmdData.AddBit(cmdBitState);
 
             
-            if( mClock->GetBitState() == BIT_LOW ) {
-                mClock->AdvanceToNextEdge();
-            }
+            // advance to next rising edge (i.e. full clock cycle)
+            mClock->AdvanceToNextEdge();
             mClock->AdvanceToNextEdge();
 
             // now get our position, based on clock
@@ -129,9 +128,11 @@ U64 SDIOAnalyzer::AdvanceAllLinesToNextStartBit()
     // but we want to sample on the rising edge of the clock.  Advance the clock to
     // our sample number, check the clock, it should be low.  advance the clock to next edge
     mClock->AdvanceToAbsPosition(currentSampleNo);
-	if( mClock->GetBitState() == BIT_LOW ) {
+	if( mClock->GetBitState() == BIT_HIGH ) {
 		mClock->AdvanceToNextEdge();
     }
+    // now advance to rising edge
+    mClock->AdvanceToNextEdge();
 
     // now get our position, based on clock
     currentSampleNo = mClock->GetSampleNumber();
