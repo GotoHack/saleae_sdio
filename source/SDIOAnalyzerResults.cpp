@@ -99,3 +99,10 @@ void SDIOAnalyzerResults::GenerateTransactionTabularText( U64 transaction_id, Di
 	ClearResultStrings();
 	AddResultString( "not supported" );
 }
+
+char* SDIOAnalyzerResults::ParseCommand(U64 data)
+{
+}
+char* SDIOAnalyzerResults::ParseCmd52(U64 data)
+{
+}

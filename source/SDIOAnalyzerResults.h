@@ -24,6 +24,10 @@ protected: //functions
 protected:  //vars
 	SDIOAnalyzerSettings* mSettings;
 	SDIOAnalyzer* mAnalyzer;
+
+private: // internal functions
+    char* ParseCommand(U64 data);
+    char* ParseCmd52(U64 data);
 };
 
 #endif //SDIO_ANALYZER_RESULTS
