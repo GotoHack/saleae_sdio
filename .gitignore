@@ -19,3 +19,11 @@
 *.exe
 *.out
 *.app
+
+.*.swp
+*.swp
+debug
+release
+tags
+*cscope.out
+*cscope.files
