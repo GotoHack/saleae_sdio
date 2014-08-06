@@ -37,6 +37,9 @@ const char* parse_str(unsigned long val)
         case 52:
             str = parse_CMD52(val);
             break;
+        case 53:
+            str = parse_CMD53(val);
+            break;
         default:
             break;
     }
@@ -149,6 +152,98 @@ const char* parse_CMD52_RESP(unsigned long val)
 
     return chr;
 }
+
+const char* parse_CMD53(unsigned long val)
+{
+    const char* str = "";
+    // if the direction bit indicates command (set)
+    if (CMD_DIR(val))
+    {
+        str = parse_CMD53_COMMAND (val);
+    }
+    else
+    {
+        // direction bit == 0 ,indicates response
+        str = parse_CMD53_RESP (val);
+    }
+    return str;
+}
+const char* parse_CMD53_COMMAND(unsigned long val)
+{
+    ostringstream stream;
+    char format[200] = {0};
+
+    if(CMD53_RW(val))
+    {
+        stream << " Write -- ";
+    }
+    else
+    {
+        stream << " Read  -- ";
+    }
+
+    stream  << "Function: " << CMD53_FUN(val)<<" ";
+    stream  << "Block Mode: " << CMD53_BLOCK_MODE(val)<<" ";
+    if ( CMD53_BLOCK_MODE(val) == 0)
+    {
+        stream  << "(transmit in BYTE Mode) ";
+    }
+    else
+    {
+        stream  << "(transmit in BLOCK Mode) ";
+    }
+
+    stream  << "OP Code: " << CMD53_OP_CODE(val)<<" ";
+    if( CMD53_OP_CODE(val) == 0)
+    {
+        stream  << "(Multi byte R/W to fixed address) ";
+    }
+    else
+    {
+        stream  << "(Multi byte R/W to incrementing address) ";
+    }
+
+    sprintf(format, "0x%05lX", CMD53_ADDRESS(val));
+    stream << "Address: " << format << " ";
+
+    stream  << "Byte/Block Count: " << hex << CMD53_COUNT(val)<<" ";
+    if ( CMD53_BLOCK_MODE(val) == 0 )
+    {
+        // byte mode 
+        if (CMD53_COUNT(val) == 0)
+        {
+            stream  << "(Count: 512 bytes) ";
+        }
+        else
+        {
+            stream << "Count: " << CMD53_COUNT(val) << " bytes) ";
+        }
+    }
+    else
+    {
+        // block mode 
+        if (CMD53_COUNT(val) == 0)
+        {
+            stream  << "(Count: infinite blocks) ";
+        }
+        else
+        {
+            stream << "Count: " << CMD53_COUNT(val) << " blocks) ";
+        }
+
+    }
+
+
+    string str = stream.str();
+    const char * chr = str.c_str();
+
+    return chr;
+}
+const char* parse_CMD53_RESP(unsigned long val)
+{
+    return parse_CMD52_RESP(val);
+}
+
 const char* parse_CMD5(unsigned long val)
 {
     const char* str = "";

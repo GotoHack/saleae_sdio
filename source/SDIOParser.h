@@ -18,6 +18,14 @@
 #define CMD52_RESP_FLAGS(x) ((x >> 16) & 0xff)
 #define CMD52_RESP_DATA(x)  ((x >> 8) & 0xff)
 
+// CMD53 Command Fields
+#define CMD53_RW(x)         ((x >> 39) & 0x01)
+#define CMD53_FUN(x)        ((x >> 36) & 0x07)
+#define CMD53_BLOCK_MODE(x) ((x >> 35) & 0x01)
+#define CMD53_OP_CODE(x)    ((x >> 34) & 0x01)
+#define CMD53_ADDRESS(x)    ((x >> 17) & 0x3ffff)
+#define CMD53_COUNT(x)      ((x >> 8) & 0x1ff)
+
 // CMD5 command and Response Fields
 #define CMD5_OCR(x)         ((x >> 8) & 0xffffff)
 #define CMD5_RESP_C(x)      ((x >> 39) & 0x1)
@@ -35,6 +43,10 @@ extern const char* parse_str(unsigned long val);
 extern const char* parse_CMD52(unsigned long val);
 extern const char* parse_CMD52_COMMAND(unsigned long val);
 extern const char* parse_CMD52_RESP(unsigned long val);
+
+extern const char* parse_CMD53(unsigned long val);
+extern const char* parse_CMD53_COMMAND(unsigned long val);
+extern const char* parse_CMD53_RESP(unsigned long val);
 
 extern const char* parse_CMD5(unsigned long val);
 extern const char* parse_CMD5_COMMAND(unsigned long val);
