@@ -2,12 +2,6 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-// #include <stdio.h>
-// #include <stdlib.h>
-// #include <string.h>
-// 
-// 
-// 
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,7 +43,7 @@ const char* parse_CMD52(unsigned long val)
 {
     const char* str = "";
     // if the direction bit indicates command (set)
-    if (CMD_DIR(val))
+    if (CMD_DIR(val) == DIR_FROM_HOST)
     {
         str = parse_CMD52_COMMAND (val);
     }
@@ -157,7 +151,7 @@ const char* parse_CMD53(unsigned long val)
 {
     const char* str = "";
     // if the direction bit indicates command (set)
-    if (CMD_DIR(val))
+    if (CMD_DIR(val) == DIR_FROM_HOST)
     {
         str = parse_CMD53_COMMAND (val);
     }
@@ -248,7 +242,7 @@ const char* parse_CMD5(unsigned long val)
 {
     const char* str = "";
     // if the direction bit indicates command (set)
-    if (CMD_DIR(val))
+    if (CMD_DIR(val) == DIR_FROM_HOST)
     {
         str = parse_CMD5_COMMAND (val);
     }
@@ -378,7 +372,7 @@ const char* parse_CMD3(unsigned long val)
 {
     const char* str = "";
     // if the direction bit indicates command (set)
-    if (CMD_DIR(val))
+    if (CMD_DIR(val) == DIR_FROM_HOST)
     {
         str = parse_CMD3_COMMAND (val);
     }

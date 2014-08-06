@@ -49,7 +49,7 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
         timeStamp = frame.mStartingSampleInclusive;
         timeStamp -= trigger_sample;
         timeStamp /= sample_rate;
-        sprintf(time_str, "%0.10f", timeStamp);
+        sprintf(time_str, "%012lld %0.10f", frame.mStartingSampleInclusive,timeStamp);
 
 		char number_str[128];
 		char number_str2[128];

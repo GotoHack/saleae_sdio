@@ -1,6 +1,9 @@
 #ifndef SDIOParser_H
 #define SDIOParser_H
 
+#define DIR_FROM_HOST   1
+#define DIR_FROM_CARD   0
+
 // generic parsing
 #define CMD_VAL(x)          ((x >> 40) & 0x3f)
 #define CMD_DIR(x)          ((x >> 46) & 0x01)

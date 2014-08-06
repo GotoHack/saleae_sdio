@@ -1,7 +1,9 @@
 #include "SDIOAnalyzer.h"
 #include "SDIOAnalyzerSettings.h"
+#include "SDIOParser.h"
 #include <AnalyzerChannelData.h>
 #include <AnalyzerHelpers.h>
+#include <iostream>
 
 SDIOAnalyzer::SDIOAnalyzer()
 :	Analyzer(),  
@@ -21,7 +23,9 @@ void SDIOAnalyzer::WorkerThread()
 {
 	mResults.reset( new SDIOAnalyzerResults( this, mSettings.get() ) );
 	DataBuilder cmdData;
+	DataBuilder dataData;
     U64 cmdValue;
+    U64 dataValue;
     U32 i;
     BitState cmdBitState;
 
@@ -72,17 +76,65 @@ void SDIOAnalyzer::WorkerThread()
             mCmd->AdvanceToAbsPosition(currentSampleNo);
 
         }
+        Frame frame = ParseCurrentCommand(cmdValue, currentSampleNo);
+
+            
+        // advance clock 1 cycle
+        mClock->AdvanceToNextEdge();
+        mClock->AdvanceToNextEdge();
+        mClock->AdvanceToNextEdge();
+        mClock->AdvanceToNextEdge();
 
         currentSampleNo = mClock->GetSampleNumber();
 
         // move all the data lines to current sample
+        mCmd->AdvanceToAbsPosition(currentSampleNo);
         mData0->AdvanceToAbsPosition(currentSampleNo);
         mData1->AdvanceToAbsPosition(currentSampleNo);
         mData2->AdvanceToAbsPosition(currentSampleNo);
         mData3->AdvanceToAbsPosition(currentSampleNo);
+        // std::cout << "Current Sample Number (b): " << currentSampleNo << "mCmd->GetBitState(): "<< mCmd->GetBitState() << std::endl;
         
-        Frame frame = ParseCurrentCommand(cmdValue, currentSampleNo);
 
+        // check if this is a command 53 ack from the card, we need to look for data
+        if ( (CMD_VAL(cmdValue) == 53) && (CMD_DIR(cmdValue) == 0))
+        {
+            // for now assume we are 4 bit.  we need a setting to choose 1/4 bit
+	        U64 absoluteLastSample = mCmd->GetSampleOfNextEdge();	//without moving, get the sample of the next transition. 
+
+            std::cout << "currentSampleNo: " << currentSampleNo << ", absoluteLastSample: "<< absoluteLastSample<< std::endl;
+            // move data lines to start bit
+            AdvanceDataLinesToStartBit();
+
+            std::cout << "CMD53 Data: " ;
+            while ((currentSampleNo < absoluteLastSample) && 
+                    ( mData0->WouldAdvancingToAbsPositionCauseTransition(absoluteLastSample) == true))
+            {
+                dataData.Reset(&dataValue, AnalyzerEnums::MsbFirst, 8);
+                for (i = 0; i < 2; i++)
+                {
+                    // assume we are on the rising edge of the clock, so take a sample and advance for the  next one
+                    dataData.AddBit(mData0->GetBitState());
+                    dataData.AddBit(mData1->GetBitState());
+                    dataData.AddBit(mData2->GetBitState());
+                    dataData.AddBit(mData3->GetBitState());
+                    
+                    // advance to next rising edge (i.e. full clock cycle)
+                    mClock->AdvanceToNextEdge();
+                    mClock->AdvanceToNextEdge();
+
+                    // now get our position, based on clock
+                    currentSampleNo = mClock->GetSampleNumber();
+                    mData0->AdvanceToAbsPosition(currentSampleNo);
+                    mData1->AdvanceToAbsPosition(currentSampleNo);
+                    mData2->AdvanceToAbsPosition(currentSampleNo);
+                    mData3->AdvanceToAbsPosition(currentSampleNo);
+                }
+                std::cout << std::hex << dataValue << ":";
+                Frame dataFrame = ParseCurrentCommand(dataValue, currentSampleNo);
+            }
+            std::cout << std::endl;
+        }
 	}
 }
 
@@ -139,6 +191,40 @@ U64 SDIOAnalyzer::AdvanceAllLinesToNextStartBit()
 
     // move all the lines to current sample
     mCmd->AdvanceToAbsPosition(currentSampleNo);
+    mData0->AdvanceToAbsPosition(currentSampleNo);
+    mData1->AdvanceToAbsPosition(currentSampleNo);
+    mData2->AdvanceToAbsPosition(currentSampleNo);
+    mData3->AdvanceToAbsPosition(currentSampleNo);
+
+    return currentSampleNo;
+}
+
+U64 SDIOAnalyzer::AdvanceDataLinesToStartBit()
+{
+    // make sure we're on the start bit
+	if( mData0->GetBitState() == BIT_HIGH ) {
+		mData0->AdvanceToNextEdge();
+    }
+	if( mData1->GetBitState() == BIT_HIGH ) {
+		mData1->AdvanceToNextEdge();
+    }
+	if( mData2->GetBitState() == BIT_HIGH ) {
+		mData2->AdvanceToNextEdge();
+    }
+	if( mData3->GetBitState() == BIT_HIGH ) {
+		mData3->AdvanceToNextEdge();
+    }
+    // advance clock to our sample number, and then advance to the
+    // rising edge
+    currentSampleNo = mData0->GetSampleNumber();
+    mClock->AdvanceToAbsPosition(currentSampleNo);
+
+    if (mClock->GetBitState() == BIT_HIGH ) {
+		mClock->AdvanceToNextEdge();
+    }
+    // now advance to rising edge
+    mClock->AdvanceToNextEdge();
+    currentSampleNo = mClock->GetSampleNumber();
     mData0->AdvanceToAbsPosition(currentSampleNo);
     mData1->AdvanceToAbsPosition(currentSampleNo);
     mData2->AdvanceToAbsPosition(currentSampleNo);

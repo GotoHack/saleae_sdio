@@ -44,6 +44,7 @@ protected: //vars
 
 private: // internal functions
     U64 AdvanceAllLinesToNextStartBit();
+    U64 AdvanceDataLinesToStartBit();
     Frame ParseCurrentCommand(U64 cmdValue, U64 currentSample);
 };
 
