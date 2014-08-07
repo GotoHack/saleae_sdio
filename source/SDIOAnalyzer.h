@@ -5,6 +5,12 @@
 #include "SDIOAnalyzerResults.h"
 #include "SDIOSimulationDataGenerator.h"
 
+
+#define FRAME_TYPE_CMD_DATA             0x01
+#define FRAME_TYPE_DATA_DATA            0x02
+#define FRAME_FLAGS_CMD53_DATA_START    0x01
+#define FRAME_FLAGS_CMD53_DATA_END      0x02
+
 class SDIOAnalyzerSettings;
 class ANALYZER_EXPORT SDIOAnalyzer : public Analyzer
 {
@@ -45,8 +51,10 @@ protected: //vars
 private: // internal functions
     U64 AdvanceAllLinesToNextStartBit();
     U64 AdvanceDataLinesToStartBit();
-    Frame ParseCurrentCommand(U64 cmdValue, U64 currentSample);
+    Frame ParseCurrentCommand(U64 cmdValue, U64 currentSample, U8 type=FRAME_TYPE_CMD_DATA, U8 flags=0);
 };
+
+
 
 extern "C" ANALYZER_EXPORT const char* __cdecl GetAnalyzerName();
 extern "C" ANALYZER_EXPORT Analyzer* __cdecl CreateAnalyzer( );

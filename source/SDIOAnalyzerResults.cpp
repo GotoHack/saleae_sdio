@@ -45,28 +45,38 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
         U64 cmdType = frame.mData1;
 		
 		char time_str[128];
-		// AnalyzerHelpers::GetTimeString( frame.mStartingSampleInclusive, trigger_sample, sample_rate, time_str, 128 );
         timeStamp = frame.mStartingSampleInclusive;
         timeStamp -= trigger_sample;
         timeStamp /= sample_rate;
         sprintf(time_str, "%012lld %0.10f", frame.mStartingSampleInclusive,timeStamp);
 
-		char number_str[128];
-		char number_str2[128];
-        char dir_str[128];
-		//AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
-		// AnalyzerHelpers::GetNumberString( frame.mData1, Hexadecimal, 8, number_str, 128 );
-		// AnalyzerHelpers::GetNumberString( frame.mType, Decimal, 8, number_str2, 128 );
-        sprintf(number_str, "%012llX", frame.mData1);
-        sprintf(number_str2, "%02d", frame.mType);
-        if (frame.mFlags == 1){
-            sprintf(dir_str, "Host -> Card");
-        }else {
-            sprintf(dir_str, "Response ");
+        // if regular CMD line data
+        if (frame.mType == FRAME_TYPE_CMD_DATA)
+        {
+
+            char number_str[128];
+            char number_str2[128];
+            char dir_str[128];
+            sprintf(number_str, "%012llX", frame.mData1);
+            sprintf(number_str2, "%02d", CMD_VAL(frame.mData1));
+            if(CMD_DIR(frame.mData1) == DIR_FROM_HOST)
+            {
+                sprintf(dir_str, "Host -> Card");
+            }
+            else 
+            {
+                sprintf(dir_str, "Response ");
+            }
+
+            file_stream << time_str << "," << "\t"<<number_str <<", CMD: "<< number_str2 <<",     "<<dir_str << " -- "<<parse_str(frame.mData1) << std::endl;
         }
-
-
-		file_stream << time_str << "," << "\t"<<number_str <<", CMD: "<< number_str2 <<",     "<<dir_str << " -- "<<parse_str(frame.mData1) << std::endl;
+        else
+        {
+            char number_str[128];
+            // this is DATA Line Data
+            sprintf(number_str, "%02llX", frame.mData1);
+            file_stream << time_str << "," << "\t"<<number_str <<std::endl;
+        }
 
 		if( UpdateExportProgressAndCheckForCancel( i, num_frames ) == true )
 		{

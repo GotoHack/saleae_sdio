@@ -131,31 +131,37 @@ void SDIOAnalyzer::WorkerThread()
                     mData3->AdvanceToAbsPosition(currentSampleNo);
                 }
                 std::cout << std::hex << dataValue << ":";
-                Frame dataFrame = ParseCurrentCommand(dataValue, currentSampleNo);
+                Frame dataFrame = ParseCurrentCommand(dataValue, currentSampleNo, FRAME_TYPE_DATA_DATA);
+// #define FRAME_TYPE_CMD_DATA             0x01
+// #define FRAME_TYPE_DATA_DATA            0x02
+// #define FRAME_FLAGS_CMD53_DATA_START    0x01
+// #define FRAME_FLAGS_CMD53_DATA_END      0x02
             }
             std::cout << std::endl;
         }
 	}
 }
 
-Frame SDIOAnalyzer::ParseCurrentCommand(U64 cmdValue, U64 currentSample)
+Frame SDIOAnalyzer::ParseCurrentCommand(U64 cmdValue, U64 currentSample, U8 type, U8 flags)
 {
     //we have a byte to save. 
     Frame frame;
     U64 tmp = cmdValue;
     frame.mData1 = cmdValue;
-    frame.mFlags = 0;
+    frame.mFlags = flags;
+    frame.mType = type;
     frame.mStartingSampleInclusive = frameStartSample;
     frame.mEndingSampleInclusive = currentSampleNo;
 
-    tmp >>= 40;
-    frame.mType = (U8)tmp & 0x3f;
-    if (tmp & 0x40) {
-        frame.mFlags = 1;
-    }
-    else {
-        frame.mFlags = 0;
-    }
+
+    // tmp >>= 40;
+    // frame.mType = (U8)tmp & 0x3f;
+    // if (tmp & 0x40) {
+    //     frame.mFlags = 1;
+    // }
+    // else {
+    //     frame.mFlags = 0;
+    // }
 
 
 
