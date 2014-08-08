@@ -47,6 +47,7 @@ protected: //vars
     // jonathan vars
     U64 currentSampleNo;
     U64 frameStartSample;
+    U64 numSamplesInHalfClock;
 
 private: // internal functions
     U64 AdvanceAllLinesToNextStartBit();

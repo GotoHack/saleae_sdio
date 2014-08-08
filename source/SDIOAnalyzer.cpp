@@ -9,7 +9,8 @@ SDIOAnalyzer::SDIOAnalyzer()
 :	Analyzer(),  
 	mSettings( new SDIOAnalyzerSettings() ),
 	mSimulationInitilized( false ),
-    currentSampleNo(0)
+    currentSampleNo(0),
+    numSamplesInHalfClock(0)
 {
 	SetAnalyzerSettings( mSettings.get() );
 }
@@ -110,6 +111,8 @@ void SDIOAnalyzer::WorkerThread()
             while ((currentSampleNo < absoluteLastSample) && 
                     ( mData0->WouldAdvancingToAbsPositionCauseTransition(absoluteLastSample) == true))
             {
+                frameStartSample = currentSampleNo - (numSamplesInHalfClock/2);
+                // frameStartSample = currentSampleNo;
                 dataData.Reset(&dataValue, AnalyzerEnums::MsbFirst, 8);
                 for (i = 0; i < 2; i++)
                 {
@@ -131,7 +134,7 @@ void SDIOAnalyzer::WorkerThread()
                     mData3->AdvanceToAbsPosition(currentSampleNo);
                 }
                 std::cout << std::hex << dataValue << ":";
-                Frame dataFrame = ParseCurrentCommand(dataValue, currentSampleNo, FRAME_TYPE_DATA_DATA);
+                Frame dataFrame = ParseCurrentCommand(dataValue, currentSampleNo - (1* (numSamplesInHalfClock/2)), FRAME_TYPE_DATA_DATA);
 // #define FRAME_TYPE_CMD_DATA             0x01
 // #define FRAME_TYPE_DATA_DATA            0x02
 // #define FRAME_FLAGS_CMD53_DATA_START    0x01
@@ -151,18 +154,8 @@ Frame SDIOAnalyzer::ParseCurrentCommand(U64 cmdValue, U64 currentSample, U8 type
     frame.mFlags = flags;
     frame.mType = type;
     frame.mStartingSampleInclusive = frameStartSample;
-    frame.mEndingSampleInclusive = currentSampleNo;
-
-
-    // tmp >>= 40;
-    // frame.mType = (U8)tmp & 0x3f;
-    // if (tmp & 0x40) {
-    //     frame.mFlags = 1;
-    // }
-    // else {
-    //     frame.mFlags = 0;
-    // }
-
+    //frame.mEndingSampleInclusive = currentSampleNo;
+    frame.mEndingSampleInclusive = currentSample;
 
 
     mResults->AddFrame( frame );
@@ -202,11 +195,15 @@ U64 SDIOAnalyzer::AdvanceAllLinesToNextStartBit()
     mData2->AdvanceToAbsPosition(currentSampleNo);
     mData3->AdvanceToAbsPosition(currentSampleNo);
 
+    numSamplesInHalfClock = 0;
+
     return currentSampleNo;
 }
 
 U64 SDIOAnalyzer::AdvanceDataLinesToStartBit()
 {
+    U64 clkMeasureStart = 0;
+    U64 clkMeasureStop = 0;
     // make sure we're on the start bit
 	if( mData0->GetBitState() == BIT_HIGH ) {
 		mData0->AdvanceToNextEdge();
@@ -228,15 +225,20 @@ U64 SDIOAnalyzer::AdvanceDataLinesToStartBit()
     if (mClock->GetBitState() == BIT_HIGH ) {
 		mClock->AdvanceToNextEdge();
     }
-    // now advance to rising edge
+    // now advance to rising edge and get the number of samples in a half clock pulse
     mClock->AdvanceToNextEdge();
+    clkMeasureStart = mClock->GetSampleNumber();
     mClock->AdvanceToNextEdge();
+    clkMeasureStop  = mClock->GetSampleNumber();
     mClock->AdvanceToNextEdge();
+    numSamplesInHalfClock = clkMeasureStop - clkMeasureStart;
+
     currentSampleNo = mClock->GetSampleNumber();
     mData0->AdvanceToAbsPosition(currentSampleNo);
     mData1->AdvanceToAbsPosition(currentSampleNo);
     mData2->AdvanceToAbsPosition(currentSampleNo);
     mData3->AdvanceToAbsPosition(currentSampleNo);
+    frameStartSample = currentSampleNo;
 
     return currentSampleNo;
 }
