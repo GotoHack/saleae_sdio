@@ -114,10 +114,10 @@ void SDIOAnalyzer::WorkerThread()
                 for (i = 0; i < 2; i++)
                 {
                     // assume we are on the rising edge of the clock, so take a sample and advance for the  next one
-                    dataData.AddBit(mData0->GetBitState());
-                    dataData.AddBit(mData1->GetBitState());
-                    dataData.AddBit(mData2->GetBitState());
                     dataData.AddBit(mData3->GetBitState());
+                    dataData.AddBit(mData2->GetBitState());
+                    dataData.AddBit(mData1->GetBitState());
+                    dataData.AddBit(mData0->GetBitState());
                     
                     // advance to next rising edge (i.e. full clock cycle)
                     mClock->AdvanceToNextEdge();
@@ -229,6 +229,8 @@ U64 SDIOAnalyzer::AdvanceDataLinesToStartBit()
 		mClock->AdvanceToNextEdge();
     }
     // now advance to rising edge
+    mClock->AdvanceToNextEdge();
+    mClock->AdvanceToNextEdge();
     mClock->AdvanceToNextEdge();
     currentSampleNo = mClock->GetSampleNumber();
     mData0->AdvanceToAbsPosition(currentSampleNo);
