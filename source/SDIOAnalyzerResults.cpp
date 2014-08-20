@@ -5,6 +5,8 @@
 #include <iostream>
 #include <fstream>
 #include "SDIOParser.h"
+#include "SdioCmd.h"
+#include "CIA.h"
 
 SDIOAnalyzerResults::SDIOAnalyzerResults( SDIOAnalyzer* analyzer, SDIOAnalyzerSettings* settings )
 :	AnalyzerResults(),
@@ -22,10 +24,19 @@ void SDIOAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& channel,
 	ClearResultStrings();
 	Frame frame = GetFrame( frame_index );
 
-	char number_str[128];
-	//AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
-	AnalyzerHelpers::GetNumberString( frame.mData1, Hexadecimal, 8, number_str, 128 );
-	AddResultString( number_str );
+    // if this is command data
+    if (frame.mType == FRAME_TYPE_CMD_DATA)
+    {
+        SdioCmd *tmp = SdioCmd::CreateSdioCmd(frame.mData1);
+        AddResultString( tmp->getShortString() );
+    }
+    // else, this is data line data, should be partitioned into bytes
+    else
+    {
+        char number_str[128] = {0};
+        sprintf(number_str, "0x%02X", frame.mData1);
+        AddResultString( number_str );
+    }
 }
 
 void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase display_base, U32 export_type_user_id )
@@ -53,22 +64,25 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
         // if regular CMD line data
         if (frame.mType == FRAME_TYPE_CMD_DATA)
         {
+            SdioCmd *tmp = SdioCmd::CreateSdioCmd(frame.mData1);
+            AddResultString( tmp->getShortString() );
 
             char number_str[128];
             char number_str2[128];
             char dir_str[128];
             sprintf(number_str, "%012llX", frame.mData1);
             sprintf(number_str2, "%02d", CMD_VAL(frame.mData1));
-            if(CMD_DIR(frame.mData1) == DIR_FROM_HOST)
-            {
-                sprintf(dir_str, "Host -> Card");
-            }
-            else 
-            {
-                sprintf(dir_str, "Response ");
-            }
+            //if(CMD_DIR(frame.mData1) == DIR_FROM_HOST)
+            //{
+            //    sprintf(dir_str, "Host -> Card");
+            //}
+            //else 
+            //{
+            //    sprintf(dir_str, "Response ");
+            //}
 
-            file_stream << time_str << "," << "\t"<<number_str <<", CMD: "<< number_str2 <<",     "<<dir_str << " -- "<<parse_str(frame.mData1) << std::endl;
+            //file_stream << time_str << "," << "\t"<<number_str <<", CMD: "<< number_str2 <<",     "<<dir_str << " -- "<<parse_str(frame.mData1) << std::endl;
+            file_stream << time_str << "," << "\t"<<number_str <<", " << tmp->getDetailedString() << endl;
         }
         else
         {
@@ -84,6 +98,9 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
 			return;
 		}
 	}
+    CCCR::DumpCCCRTable();
+    CCCR::DumpFBRTable();
+
 
 	file_stream.close();
 }
