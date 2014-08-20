@@ -98,7 +98,7 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
 			return;
 		}
 	}
-    CCCR::DumpCCCRTable();
+    CCCR::DumpCCCRTable(file_stream);
     CCCR::DumpFBRTable();
 
 

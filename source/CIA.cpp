@@ -188,8 +188,12 @@ bool CCCR::HandleCmd52Response(U64 data)
     return true;
 }
 
-// static function -- available to anyone
 void CCCR::DumpCCCRTable(void)
+{
+    CCCR::DumpCCCRTable(cout);
+}
+void CCCR::DumpCCCRTable(std::ostream &stream)
+// static function -- available to anyone
 {
     U32 i;
     U8* tmp = 0;
@@ -202,17 +206,17 @@ void CCCR::DumpCCCRTable(void)
         tmp = (U8*)&(theCCCR->cccr_data);
         if (theCCCR->cccrDataPopulated)
         {
-            cout << endl << "CCCR TABLE  Address range: 0x0000--0x00FF" << endl;
-            cout << "=========================================================================================================" << endl;
+            stream << endl << "CCCR TABLE  Address range: 0x0000--0x00FF" << endl;
+            stream << "=========================================================================================================" << endl;
             for (i = 0; i < NUM_CCCR_ELEMENTS; i++)
             {
                 // sprintf(buffer, "ADDR 0x%02X: 0x%02X -- " PRINTF_BIT_PATTERN,
                 //         i, tmp[i], PRINTF_BIT(tmp[i]));
                 sprintf(buffer, "%s 0x%02X -- " PRINTF_BIT_PATTERN, CCCR_NAMES[i], tmp[i], PRINTF_BIT(tmp[i]));
 
-                cout << buffer << endl;
+                stream << buffer << endl;
             }
-            cout << "=========================================================================================================" << endl;
+            stream << "=========================================================================================================" << endl;
             theCCCR->tupleChain.dump();
         }
     }
@@ -405,4 +409,47 @@ U32 CCCR::FBR::getCisAddress(void)
     U32 address = 0;
     address = (fbr_data.CIS_ptr[0] << 0) | (fbr_data.CIS_ptr[1] << 8) | (fbr_data.CIS_ptr[2] << 16);
     return address;
+}
+
+TUPLE::TUPLE(U32 addr)
+:address(addr), 
+    tplCode(0), 
+    size(0), 
+    body() 
+{
+    tupleNames[0x00]= string("CISTPL_NULL");
+    tupleNames[0x10]= string("CISTPL_CHECKSUM");
+    tupleNames[0x15]= string("CISTPL_VERS_1");
+    tupleNames[0x16]= string("CISTPL_ALTSTR");
+    tupleNames[0x20]= string("CISTPL_MANFID");
+    tupleNames[0x21]= string("CISTPL_FUNCID");
+    tupleNames[0x22]= string("CISTPL_FUNCE");
+    tupleNames[0x91]= string("CISTPL_SDIO_STD");
+    tupleNames[0x92]= string("CISTPL_SDIO_EXT");
+    tupleNames[0xFF]= string("CISTPL_END");
+}
+
+void TUPLE::dump()
+{
+    list<U32>::iterator it = body.begin();
+    int i = 0;
+    cout << "\tTuple: 0x" << setw(2) << setfill('0') << hex << tplCode 
+        << ", located at 0x" << setw(4) << setfill('0') << hex << address 
+        << ", size: 0x" << setw(4) << setfill('0') << hex << size << endl;
+    cout << "\t=================================================" << endl;
+
+
+    cout << "\t0x" << setw(4) << setfill('0') << hex << (address + i++) <<"\t\t" <<
+        setw(2) << setfill('0') << tplCode << "\t\t" << tupleNames[tplCode] << endl;
+
+    cout << "\t0x" << setw(4) << setfill('0') << hex << (address + i++) <<"\t\t" <<
+        setw(2) << setfill('0') << size << endl;
+
+    // now dump the body
+    for (it = body.begin(); it != body.end(); it++)
+    {
+        cout << "\t0x" << setw(4) << setfill('0') << hex << (address + i++) <<"\t\t" <<
+            setw(2) << setfill('0') << *it << endl;
+    }
+    cout << "\t=================================================" << endl;
 }
