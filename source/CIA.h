@@ -98,6 +98,7 @@ class TUPLE
         void setSize(U32 sz) {size = sz;}
         void addData(U32 data) { body.push_back(data);}
         void dump();
+        void dump(std::ostream &stream);
 
 };
 
@@ -109,6 +110,7 @@ class CCCR
         static void DumpCCCRTable(void);
         static void DumpCCCRTable(std::ostream &stream);
         static void DumpFBRTable(void);
+        static void DumpFBRTable(std::ostream &stream);
         U32 getCisAddress();
 
     protected:
@@ -125,6 +127,7 @@ class CCCR
                 void setCisAddress(U32 address);
                 void addDataToTuple(U64 data);
                 void dump();
+                void dump(std::ostream &stream);
         };
 
         class FBR
@@ -132,6 +135,7 @@ class CCCR
             public:
                 FBR(U32 number = 1);
                 void DumpFBR();
+                void DumpFBR(std::ostream &stream);
                 void addData(U64 data);
                 U32 getCisAddress(void);
             private:

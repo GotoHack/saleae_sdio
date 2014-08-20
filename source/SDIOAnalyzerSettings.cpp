@@ -58,6 +58,14 @@ SDIOAnalyzerSettings::SDIOAnalyzerSettings()
 	AddExportExtension( 0, "text", "txt" );
 	AddExportExtension( 0, "csv", "csv" );
 
+	AddExportOption( 1, "Export as text/csv file -- less annotation" );
+	AddExportExtension( 1, "text", "txt" );
+	AddExportExtension( 1, "csv", "csv" );
+
+	AddExportOption( 1, "Export as text/csv file -- data only" );
+	AddExportExtension( 2, "text", "txt" );
+	AddExportExtension( 2, "csv", "csv" );
+
 	ClearChannels();
 	// AddChannel( mInputChannel, "Serial", false );
 	AddChannel( mClockChannel, "Clock", false );

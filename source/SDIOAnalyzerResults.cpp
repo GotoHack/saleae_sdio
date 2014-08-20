@@ -46,6 +46,7 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
 	U64 trigger_sample = mAnalyzer->GetTriggerSample();
 	U32 sample_rate = mAnalyzer->GetSampleRate();
     double timeStamp = 0.0;
+    std::cout <<  "export_type_user_id: 0x" << std::hex << export_type_user_id << std::endl;
 
 	file_stream << "Time [s],Value" << std::endl;
 
@@ -99,7 +100,7 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
 		}
 	}
     CCCR::DumpCCCRTable(file_stream);
-    CCCR::DumpFBRTable();
+    CCCR::DumpFBRTable(file_stream);
 
 
 	file_stream.close();

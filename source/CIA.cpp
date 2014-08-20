@@ -217,13 +217,17 @@ void CCCR::DumpCCCRTable(std::ostream &stream)
                 stream << buffer << endl;
             }
             stream << "=========================================================================================================" << endl;
-            theCCCR->tupleChain.dump();
+            theCCCR->tupleChain.dump(stream);
         }
     }
 }
 
 // static function
 void CCCR::DumpFBRTable(void)
+{
+    CCCR::DumpFBRTable(cout);
+}
+void CCCR::DumpFBRTable(std::ostream &stream)
 {
     U32 i,funcNo, funcIndex;
     char buffer[400] = {0};
@@ -232,7 +236,7 @@ void CCCR::DumpFBRTable(void)
     {
         for (funcIndex = 0; funcIndex < 7; funcIndex++)
         {
-            theCCCR->fbr[funcIndex].DumpFBR();
+            theCCCR->fbr[funcIndex].DumpFBR(stream);
         }
     }
 }
@@ -310,13 +314,17 @@ void CCCR::TupleChain::addDataToTuple(U64 data)
 
 void CCCR::TupleChain::dump()
 {
-    cout << "Tuples for address: 0x" << hex << cisAddress << endl;
-    cout << "================================================================================" << endl;
+    dump(cout);
+}
+void CCCR::TupleChain::dump(std::ostream &stream)
+{
+    stream << "Tuples for address: 0x" << hex << cisAddress << endl;
+    stream << "================================================================================" << endl;
     list<TUPLE>::iterator tupleIterator;
 
     for (tupleIterator = tuples.begin(); tupleIterator != tuples.end(); tupleIterator++)
     {
-        tupleIterator->dump();
+        tupleIterator->dump(stream);
     }
 
 }
@@ -338,6 +346,10 @@ CCCR::FBR::FBR(U32 number)
 
 void CCCR::FBR::DumpFBR()
 {
+    DumpFBR(cout);
+}
+void CCCR::FBR::DumpFBR(std::ostream &stream)
+{
     U32 i,funcNo;
     U8* tmp = (U8*)&fbr_data;
     char buffer[400] = {0};
@@ -347,17 +359,17 @@ void CCCR::FBR::DumpFBR()
         funcNo = functionNumber;
         tmp = (U8*)&fbr_data;
 
-        cout << endl << "FBR TABLE for Function " << funcNo << "  Address range: 0x0"<< funcNo <<"00--0x0" << funcNo <<"FF" << endl;
-        cout << "=========================================================================================================" << endl;
+        stream << endl << "FBR TABLE for Function " << funcNo << "  Address range: 0x0"<< funcNo <<"00--0x0" << funcNo <<"FF" << endl;
+        stream << "=========================================================================================================" << endl;
         for (i = 0; i < NUM_FBR_ELEMENTS; i++)
         {
             sprintf(buffer, "%s 0x%02X -- " PRINTF_BIT_PATTERN, FBR_NAMES[i], tmp[i], PRINTF_BIT(tmp[i]));
 
-            cout << buffer << endl;
+            stream << buffer << endl;
         }
-        cout << "=========================================================================================================" << endl;
-        cout << "CIS Address is 0x:" << getCisAddress() << endl;
-        tupleChain.dump();
+        stream << "=========================================================================================================" << endl;
+        stream << "CIS Address is 0x:" << getCisAddress() << endl;
+        tupleChain.dump(stream);
     }
 }
 
@@ -431,25 +443,29 @@ TUPLE::TUPLE(U32 addr)
 
 void TUPLE::dump()
 {
+    dump(cout);
+}
+void TUPLE::dump(std::ostream &stream)
+{
     list<U32>::iterator it = body.begin();
     int i = 0;
-    cout << "\tTuple: 0x" << setw(2) << setfill('0') << hex << tplCode 
+    stream << "\tTuple: 0x" << setw(2) << setfill('0') << hex << tplCode 
         << ", located at 0x" << setw(4) << setfill('0') << hex << address 
         << ", size: 0x" << setw(4) << setfill('0') << hex << size << endl;
-    cout << "\t=================================================" << endl;
+    stream << "\t=================================================" << endl;
 
 
-    cout << "\t0x" << setw(4) << setfill('0') << hex << (address + i++) <<"\t\t" <<
+    stream << "\t0x" << setw(4) << setfill('0') << hex << (address + i++) <<"\t\t" <<
         setw(2) << setfill('0') << tplCode << "\t\t" << tupleNames[tplCode] << endl;
 
-    cout << "\t0x" << setw(4) << setfill('0') << hex << (address + i++) <<"\t\t" <<
+    stream << "\t0x" << setw(4) << setfill('0') << hex << (address + i++) <<"\t\t" <<
         setw(2) << setfill('0') << size << endl;
 
     // now dump the body
     for (it = body.begin(); it != body.end(); it++)
     {
-        cout << "\t0x" << setw(4) << setfill('0') << hex << (address + i++) <<"\t\t" <<
+        stream << "\t0x" << setw(4) << setfill('0') << hex << (address + i++) <<"\t\t" <<
             setw(2) << setfill('0') << *it << endl;
     }
-    cout << "\t=================================================" << endl;
+    stream << "\t=================================================" << endl;
 }
