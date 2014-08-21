@@ -4,6 +4,10 @@
 #include <AnalyzerSettings.h>
 #include <AnalyzerTypes.h>
 
+#define SDIO_EXPORT_FULL         0
+#define SDIO_EXPORT_SHORT        1
+#define SDIO_EXPORT_DATA_ONLY    2
+
 class SDIOAnalyzerSettings : public AnalyzerSettings
 {
 public:

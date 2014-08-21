@@ -111,6 +111,7 @@ class CCCR
         static void DumpCCCRTable(std::ostream &stream);
         static void DumpFBRTable(void);
         static void DumpFBRTable(std::ostream &stream);
+        static void CleanupCCCR();
         U32 getCisAddress();
 
     protected:

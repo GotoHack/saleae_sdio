@@ -24,7 +24,7 @@ const char * SdioCmd::getShortString()
     ostringstream stream;
     char format[200] = {0};
 
-    sprintf(format, "0x%012llX", cmdData);
+    sprintf(format, "0x%012llX, CMD%d", cmdData, getCmd());
 
     string str(format);
     const char * chr = str.c_str();
@@ -37,10 +37,11 @@ const char * SdioCmd::getDetailedString()
     ostringstream stream;
     char format[200] = {0};
 
-    stream << "0x" << hex << cmdData  << ", CMD" << getCmd();
-
-    string str = stream.str();
-    stream.flush();
+    sprintf(format, "0x%012llX, CMD%d", cmdData, getCmd());
+    string str(format);
+    //stream << "0x" << hex << cmdData  << ", CMD" << getCmd();
+    //string str = stream.str();
+    //stream.flush();
     const char * chr = str.c_str();
 
     return chr;

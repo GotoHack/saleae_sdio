@@ -79,6 +79,26 @@ CCCR::CCCR()
         fbr[i] = FBR(i+1);
     }
 }
+void CCCR::CleanupCCCR()
+{
+    if (theCCCR->lastHostCmd52 != 0)
+    {
+        delete theCCCR->lastHostCmd52;
+    }
+    theCCCR->cccrDataPopulated = false;
+    theCCCR->tupleChain = TupleChain();
+
+    int i;
+    memset(&theCCCR->cccr_data, 0, sizeof(CCCR_t));
+    theCCCR->cccr_data.Common_CIS_Pointer[0] = (CIA_PTR_INIT_VAL ) & 0xff;
+    theCCCR->cccr_data.Common_CIS_Pointer[1] = (CIA_PTR_INIT_VAL >> 8) & 0xff;
+    theCCCR->cccr_data.Common_CIS_Pointer[2] = (CIA_PTR_INIT_VAL >> 16) & 0xff;
+
+    for (i = 0; i < 7; i++)
+    {
+        theCCCR->fbr[i] = FBR(i+1);
+    }
+}
 
 CCCR* CCCR::BuildCCCR(U64 data)
 {

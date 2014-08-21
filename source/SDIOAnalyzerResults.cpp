@@ -60,36 +60,35 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
         timeStamp = frame.mStartingSampleInclusive;
         timeStamp -= trigger_sample;
         timeStamp /= sample_rate;
-        sprintf(time_str, "%012lld %0.10f", frame.mStartingSampleInclusive,timeStamp);
+        // only if we want sample numbers
+        // sprintf(time_str, "%012lld %0.10f", frame.mStartingSampleInclusive,timeStamp);
+        sprintf(time_str, "%012lld", frame.mStartingSampleInclusive);
 
         // if regular CMD line data
         if (frame.mType == FRAME_TYPE_CMD_DATA)
         {
             SdioCmd *tmp = SdioCmd::CreateSdioCmd(frame.mData1);
-            AddResultString( tmp->getShortString() );
-
-            char number_str[128];
-            char number_str2[128];
-            char dir_str[128];
-            sprintf(number_str, "%012llX", frame.mData1);
-            sprintf(number_str2, "%02d", CMD_VAL(frame.mData1));
-            //if(CMD_DIR(frame.mData1) == DIR_FROM_HOST)
-            //{
-            //    sprintf(dir_str, "Host -> Card");
-            //}
-            //else 
-            //{
-            //    sprintf(dir_str, "Response ");
-            //}
-
-            //file_stream << time_str << "," << "\t"<<number_str <<", CMD: "<< number_str2 <<",     "<<dir_str << " -- "<<parse_str(frame.mData1) << std::endl;
-            file_stream << time_str << "," << "\t"<<number_str <<", " << tmp->getDetailedString() << endl;
+            if (export_type_user_id == SDIO_EXPORT_FULL)
+            {
+                file_stream << time_str << "," << "\t" << tmp->getDetailedString() << endl;
+            }
+            else if (export_type_user_id == SDIO_EXPORT_SHORT)
+            {
+                file_stream << time_str << "," << "\t" << tmp->getShortString() << endl;
+            }
+            else
+            {
+                // just data
+                char number_str[128];
+                sprintf(number_str, "0x%012llX", frame.mData1);
+                file_stream << time_str << "," << "\t" << number_str << endl;
+            }
         }
         else
         {
             char number_str[128];
             // this is DATA Line Data
-            sprintf(number_str, "%02llX", frame.mData1);
+            sprintf(number_str, "0x%02llX", frame.mData1);
             file_stream << time_str << "," << "\t"<<number_str <<std::endl;
         }
 
@@ -101,6 +100,7 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
 	}
     CCCR::DumpCCCRTable(file_stream);
     CCCR::DumpFBRTable(file_stream);
+    CCCR::CleanupCCCR();
 
 
 	file_stream.close();

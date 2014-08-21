@@ -19,7 +19,7 @@ const char * SdioCmd5::getDetailedString()
     char format[200] = {0};
     U32 occr = getOCCR();
 
-    stream << "0x" << hex << cmdData << " CMD5 ";
+    stream << "0x" << uppercase << hex << cmdData << ", CMD5 ";
     stream << "OCCR: " << hex << setw(6) << setfill('0') << occr << " ";
 
     stream << parse_CMD5_OCR(occr);
@@ -43,7 +43,7 @@ const char* SdioCmd5Resp::getShortString()
     char format[200] = {0};
     U32 occr = getOCCR();
 
-    stream << "0x" << hex << cmdData << " CMD5 Resp ";
+    stream << "0x" << uppercase << hex << cmdData << ", CMD5 Resp ";
 
     stream << "OCR: "<< "0x" <<  setw(6) << setfill('0') << hex << occr;
 
@@ -58,7 +58,7 @@ const char* SdioCmd5Resp::getDetailedString()
     char format[200] = {0};
     U32 flags;
 
-    stream << "0x" << hex << cmdData << " CMD5 Rsp ";
+    stream << "0x" << uppercase << hex << cmdData << ", CMD5 Rsp ";
     stream << "Card Ready: " << isCardReady() << ", ";
     stream << "Num Functions: " << numIOFunctions() << ", ";
     stream << "Memory Present: " << isMemoryPresent() << ", ";

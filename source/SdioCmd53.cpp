@@ -17,7 +17,7 @@ const char * SdioCmd53::getShortString()
     ostringstream stream;
     char format[200] = {0};
 
-    stream << "0x" << hex << cmdData << " CMD53 ";
+    stream << "0x" << uppercase << hex << cmdData << ", CMD53 ";
     if (getRead()) stream << "R:";
     else stream << "W:";
 
@@ -38,7 +38,7 @@ const char * SdioCmd53::getDetailedString()
     ostringstream stream;
     char format[200] = {0};
 
-    stream << hex << cmdData << " CMD53 ";
+    stream << uppercase << hex << cmdData << ", CMD53 ";
     stream << "Function: " << getFunctionNumber() << ", ";
     if (getRead()) stream << "Read, ";
     else stream << "Write, ";
@@ -124,7 +124,7 @@ const char* SdioCmd53Resp::getShortString()
     ostringstream stream;
     char format[200] = {0};
 
-    sprintf(format, "0x%012llX CMD53 Resp", cmdData);
+    sprintf(format, "0x%012llX, CMD53 Resp", cmdData);
     //stream << format;
     // stream << "0x" << hex << cmdData << " CMD53 Resp ";
     // stream << "0x" <<  setw(2) << setfill('0') << hex << getData();
@@ -141,7 +141,7 @@ const char* SdioCmd53Resp::getDetailedString()
     char format[200] = {0};
     U32 flags;
 
-    stream << "0x" << hex << cmdData << " CMD53 Rsp ";
+    stream << "0x" << uppercase << hex << cmdData << ", CMD53 Rsp ";
 
     stream << "Data: 0x" <<  setw(2) << setfill('0') << hex << getData() << " ";
     flags = getResponseBitFlags();

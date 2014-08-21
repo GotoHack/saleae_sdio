@@ -54,17 +54,17 @@ SDIOAnalyzerSettings::SDIOAnalyzerSettings()
 	AddInterface( mD2ChannelInterface.get() );
 	AddInterface( mD3ChannelInterface.get() );
 
-	AddExportOption( 0, "Export as text/csv file" );
-	AddExportExtension( 0, "text", "txt" );
-	AddExportExtension( 0, "csv", "csv" );
+	AddExportOption   ( SDIO_EXPORT_FULL, "Export as text/csv file" );
+	AddExportExtension( SDIO_EXPORT_FULL, "text", "txt" );
+	AddExportExtension( SDIO_EXPORT_FULL, "csv", "csv" );
 
-	AddExportOption( 1, "Export as text/csv file -- less annotation" );
-	AddExportExtension( 1, "text", "txt" );
-	AddExportExtension( 1, "csv", "csv" );
+	AddExportOption   ( SDIO_EXPORT_SHORT, "Export as text/csv file -- less annotation" );
+	AddExportExtension( SDIO_EXPORT_SHORT, "text", "txt" );
+	AddExportExtension( SDIO_EXPORT_SHORT, "csv", "csv" );
 
-	AddExportOption( 1, "Export as text/csv file -- data only" );
-	AddExportExtension( 2, "text", "txt" );
-	AddExportExtension( 2, "csv", "csv" );
+	AddExportOption   ( SDIO_EXPORT_DATA_ONLY, "Export as text/csv file -- data only" );
+	AddExportExtension( SDIO_EXPORT_DATA_ONLY, "text", "txt" );
+	AddExportExtension( SDIO_EXPORT_DATA_ONLY, "csv", "csv" );
 
 	ClearChannels();
 	// AddChannel( mInputChannel, "Serial", false );
