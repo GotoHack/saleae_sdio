@@ -5,16 +5,15 @@
 #include <iostream>
 
 SDIOSimulationDataGenerator::SDIOSimulationDataGenerator()
-:	mSerialText( "My first analyzer, woo hoo!" ),
-	mStringIndex( 0 ),
-    generator(),
+:   generator(),
     mSdioSimulationChannels(),
     mSimClk(0),
     mSimCmd(0),
     mSimData0(0),
     mSimData1(0),
     mSimData2(0),
-    mSimData3(0)
+    mSimData3(0),
+    dataRep(this)
 {
 }
 
@@ -26,10 +25,6 @@ void SDIOSimulationDataGenerator::Initialize( U32 simulation_sample_rate, SDIOAn
 {
 	mSimulationSampleRateHz = simulation_sample_rate;
 	mSettings = settings;
-
-	// mSerialSimulationData.SetChannel( mSettings->mInputChannel );
-	mSerialSimulationData.SetSampleRate( simulation_sample_rate );
-	mSerialSimulationData.SetInitialBitState( BIT_HIGH );
 
 
     mSimClk = mSdioSimulationChannels.Add( mSettings->mClockChannel, simulation_sample_rate, BIT_HIGH );
@@ -52,97 +47,168 @@ U32 SDIOSimulationDataGenerator::GenerateSimulationData( U64 largest_sample_requ
     std::cout << "SDIOSimulationDataGenerator::GenerateSimulationData................................" << std::endl;
     std::cout << "current sample: " << mSimClk->GetCurrentSampleNumber() << ", largest_sample_requested: "<< largest_sample_requested <<  std::endl;
 
-	while( mSimClk->GetCurrentSampleNumber() < adjusted_largest_sample_requested )
-	{
-		CreateSerialByte();
-	}
+    // start off with idle bits for first 10,000 samples
+    if (mSimClk->GetCurrentSampleNumber() < 10000 && mSimClk->GetCurrentSampleNumber() < adjusted_largest_sample_requested)
+    {
+        while (mSimClk->GetCurrentSampleNumber() < 10000 )
+        {
+            setIdle();
+        }
+    }
 
-	//*simulation_channel = &mSerialSimulationData;
+    while( (mSimClk->GetCurrentSampleNumber() + 4) < adjusted_largest_sample_requested )
+    {
+        CreateSerialByte();
+    }
+
 	*simulation_channel = mSdioSimulationChannels.GetArray();
 	return mSdioSimulationChannels.GetCount();
 }
 
 void SDIOSimulationDataGenerator::CreateSerialByte()
 {
+
+    dataRep.setBits();
+    
+}
+
+void SDIOSimulationDataGenerator::advanceAllLines(U32 numSamples)
+{
+    mSimClk->Advance(numSamples);
+    mSimCmd->Advance(numSamples);
+    mSimData0->Advance(numSamples);
+    mSimData1->Advance(numSamples);
+    mSimData2->Advance(numSamples);
+    mSimData3->Advance(numSamples);
+}
+void SDIOSimulationDataGenerator::setIdle(void)
+{
     U32 numSamples = 0;
     numSamples = generator.AdvanceByHalfPeriod();
-    mSimClk->Advance(numSamples);
     mSimClk->Transition();
+    advanceAllLines(numSamples);
 
-    //now we need to advance the other channels
-    mSimCmd->Advance(numSamples);
-    mSimData0->Advance(numSamples);
-    mSimData1->Advance(numSamples);
-    mSimData2->Advance(numSamples);
-    mSimData3->Advance(numSamples);
-
-    mSimClk->Advance(generator.AdvanceByHalfPeriod());
-    
-    //now we need to advance the other channels
-    mSimCmd->Advance(numSamples);
-    mSimData0->Advance(numSamples);
-    mSimData1->Advance(numSamples);
-    mSimData2->Advance(numSamples);
-    mSimData3->Advance(numSamples);
-    
-	// //U32 samples_per_bit = mSimulationSampleRateHz / mSettings->mBitRate;
-	// //U32 samples_per_bit = mSimClk / mSettings->mBitRate;
-	// U32 samples_per_bit = 16;
-
-	// U8 byte = mSerialText[ mStringIndex ];
-	// mStringIndex++;
-	// if( mStringIndex == mSerialText.size() )
-	// 	mStringIndex = 0;
-
-	// //we're currenty high
-	// //let's move forward a little
-	// mSimClk.Advance( samples_per_bit * 10 );
-
-	// mSimClk.Transition();  //low-going edge for start bit
-	// mSimClk.Advance( samples_per_bit );  //add start bit time
-
-	// U8 mask = 0x1 << 7;
-	// for( U32 i=0; i<8; i++ )
-	// {
-	// 	if( ( byte & mask ) != 0 )
-	// 		mSimClk.TransitionIfNeeded( BIT_HIGH );
-	// 	else
-	// 		mSimClk.TransitionIfNeeded( BIT_LOW );
-
-	// 	mSimClk.Advance( samples_per_bit );
-	// 	mask = mask >> 1;
-	// }
-
-	// mSimClk.TransitionIfNeeded( BIT_HIGH ); //we need to end high
-
-	// //lets pad the end a bit for the stop bit:
-	// mSimClk.Advance( samples_per_bit );
+    numSamples = generator.AdvanceByHalfPeriod();
+    mSimClk->Transition();
+    advanceAllLines(numSamples);
 }
 
 
 
-
-
-
-SDIOSimulationDataGenerator::DataRepresentation::DataRepresentation()
-:   currentDataIndex(0)
+SDIOSimulationDataGenerator::DataRepresentation::DataRepresentation (SDIOSimulationDataGenerator *theSim)
+:   currentDataIndex(-1),
+    sim(theSim)
 {
-    if(sampleData[currentDataIndex] > 0xff)
-    {
-        numBitsRemaining = 48;
-        isDataLine = false;
-    }
-    else
-    {
-        numBitsRemaining = 8;
-        isDataLine = true;
-    }
 }
 
 void SDIOSimulationDataGenerator::DataRepresentation::setBits()
 {
+    currentDataIndex++;
+    if (currentDataIndex < NUM_DATA_SAMPLES)
+    {
+
+        if(sampleData[currentDataIndex] > 0xff)
+        {
+
+            setCmdBits(BitExtractor(sampleData[currentDataIndex], AnalyzerEnums::MsbFirst, 48));
+        }
+        else
+        {
+            setDataBits(BitExtractor(sampleData[currentDataIndex], AnalyzerEnums::MsbFirst, 8));
+        }
+    }
+    // we're done with data, just advance clock
+    else
+    {
+        sim->setIdle();
+    }
 }
 
+void SDIOSimulationDataGenerator::DataRepresentation::setCmdBits(BitExtractor b)
+{
+    // iterate through the BitExtractor and set data
+    int i,j;
+    U32 numSamples = 0;
+    numSamples = sim->generator.AdvanceByHalfPeriod();
+    sim->mSimClk->Transition();
+    sim->advanceAllLines(numSamples);
+
+
+    // put some idle before this word
+    for (i = 0; i < 8; i++)
+    {
+        numSamples = sim->generator.AdvanceByHalfPeriod();
+        sim->mSimClk->Transition();
+        sim->advanceAllLines(numSamples);
+    }
+    
+    // we want to put data out on high clock, it will be sampled on rising edge
+    if (sim->mSimClk->GetCurrentBitState() == BIT_LOW)
+    {
+        numSamples = sim->generator.AdvanceByHalfPeriod();
+        sim->mSimClk->Transition();
+        sim->advanceAllLines(numSamples);
+    }
+
+
+    for (i = 0; i < 48; i++)
+    {
+        // set the cmd line
+        sim->mSimCmd->TransitionIfNeeded(b.GetNextBit());
+
+        // walk clock and data lines
+        for (j = 0; j < 2; j++)
+        {
+            numSamples = sim->generator.AdvanceByHalfPeriod();
+            sim->mSimClk->Transition();
+            sim->advanceAllLines(numSamples);
+        }
+    }
+    
+    // // put some idle after this word
+    // for (i = 0; i < 8; i++)
+    // {
+    //     numSamples = sim->generator.AdvanceByHalfPeriod();
+    //     sim->mSimClk->Transition();
+    //     sim->advanceAllLines(numSamples);
+    // }
+
+}
+void SDIOSimulationDataGenerator::DataRepresentation::setDataBits(BitExtractor b)
+{
+    // iterate through the BitExtractor and set data
+    int i,j;
+    U32 numSamples = 0;
+    numSamples = sim->generator.AdvanceByHalfPeriod();
+    sim->mSimClk->Transition();
+    sim->advanceAllLines(numSamples);
+
+    // we want to put data out on high clock, it will be sampled on rising edge
+    if (sim->mSimClk->GetCurrentBitState() == BIT_LOW)
+    {
+        numSamples = sim->generator.AdvanceByHalfPeriod();
+        sim->mSimClk->Transition();
+        sim->advanceAllLines(numSamples);
+    }
+
+
+    for (i = 0; i < 2; i++)
+    {
+        // set the cmd line
+        sim->mSimData3->TransitionIfNeeded(b.GetNextBit());
+        sim->mSimData2->TransitionIfNeeded(b.GetNextBit());
+        sim->mSimData1->TransitionIfNeeded(b.GetNextBit());
+        sim->mSimData0->TransitionIfNeeded(b.GetNextBit());
+
+        // walk clock and data lines
+        for (j = 0; j < 1; j++)
+        {
+            numSamples = sim->generator.AdvanceByHalfPeriod();
+            sim->mSimClk->Transition();
+            sim->advanceAllLines(numSamples);
+        }
+    }
+}
 
 
 

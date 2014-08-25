@@ -6,6 +6,8 @@
 #include <string>
 class SDIOAnalyzerSettings;
 
+
+#define NUM_DATA_SAMPLES 598
 class SDIOSimulationDataGenerator
 {
 public:
@@ -14,6 +16,7 @@ public:
 
 	void Initialize( U32 simulation_sample_rate, SDIOAnalyzerSettings* settings );
 	U32 GenerateSimulationData( U64 newest_sample_requested, U32 sample_rate, SimulationChannelDescriptor** simulation_channel );
+    void setIdle(void);
 
 protected:
 	SDIOAnalyzerSettings* mSettings;
@@ -21,11 +24,7 @@ protected:
 
 protected:
 	void CreateSerialByte();
-	std::string mSerialText;
-	U32 mStringIndex;
     ClockGenerator generator;
-
-	SimulationChannelDescriptor mSerialSimulationData;
 
     SimulationChannelDescriptorGroup mSdioSimulationChannels;
 	SimulationChannelDescriptor *mSimClk;
@@ -35,23 +34,28 @@ protected:
 	SimulationChannelDescriptor *mSimData2;
 	SimulationChannelDescriptor *mSimData3;
 
-    U32 currentDataIndex;
-    U32 numBitsRemaining;
     bool isDataLine;
+
+private:
+    void advanceAllLines(U32 numSamples);
 
 public:
     class DataRepresentation
     {
         private: 
-            U32 currentDataIndex;
-            U32 numBitsRemaining;
+            S32 currentDataIndex;
             bool isDataLine;
-            void setBits();
+            void setCmdBits(BitExtractor b);
+            void setDataBits(BitExtractor b);
+            SDIOSimulationDataGenerator *sim;
         public:
-            DataRepresentation ();
+            void setBits();
+            DataRepresentation (SDIOSimulationDataGenerator *theSim);
     };
+private:
+    DataRepresentation dataRep;
 
-    static const U64 sampleData[598];
+    static const U64 sampleData[NUM_DATA_SAMPLES];
 
 };
 #endif //SDIO_SIMULATION_DATA_GENERATOR
