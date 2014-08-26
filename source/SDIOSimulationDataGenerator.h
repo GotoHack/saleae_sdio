@@ -45,6 +45,7 @@ public:
         private: 
             S32 currentDataIndex;
             bool isDataLine;
+            bool lastXferWasData;
             void setCmdBits(BitExtractor b);
             void setDataBits(BitExtractor b);
             SDIOSimulationDataGenerator *sim;
