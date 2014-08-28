@@ -14,20 +14,20 @@ using namespace std;
 
 const char * SdioCmd53::getShortString()
 {
-    ostringstream stream;
-    char format[200] = {0};
+    char dummy[1024] = {0};
+    char format[1024] = {0};
 
-    stream << "0x" << uppercase << hex << cmdData << ", CMD53 ";
-    if (getRead()) stream << "R:";
-    else stream << "W:";
+    sprintf (format, "0x%012llX, CMD53 ");
+    if (getRead()) strcat (format, "R:");
+    else strcat (format, "W:");
 
-    stream << setw(2) << getXferCount() << " ";
+    sprintf (dummy, "0x%02X ", getXferCount());
+    strcat (format, dummy);
 
-    if (isBlockMode()) stream << " Blks";
-    else stream << " Bytes";
+    if (isBlockMode()) strcat (format, " Blks");
+    else strcat (format, " Bytes");
 
-    string str = stream.str();
-    stream.flush();
+    string str(format);
     const char * chr = str.c_str();
 
     return chr;
@@ -35,27 +35,26 @@ const char * SdioCmd53::getShortString()
 
 const char * SdioCmd53::getDetailedString()
 {
-    ostringstream stream;
-    char format[200] = {0};
+    char dummy[1024] = {0};
+    char format[1024] = {0};
 
-    stream << uppercase << hex << cmdData << ", CMD53 ";
-    stream << "Function: " << getFunctionNumber() << ", ";
-    if (getRead()) stream << "Read, ";
-    else stream << "Write, ";
+    sprintf (format, "0x%012llX, CMD53 Function: %d", cmdData, getFunctionNumber());
+    if (getRead()) strcat (format, "Read, ");
+    else strcat (format, "Write, ");
 
+    sprintf (dummy, "0x%03X ", getXferCount());
+    strcat (format, dummy);
 
-    stream << getXferCount();
+    if (isBlockMode()) strcat (format,"Blocks, ");
+    else strcat (format, "Bytes, ");
 
-    if (isBlockMode()) stream << " Blocks, ";
-    else stream << " Bytes, ";
+    sprintf (dummy, "From Address: 0x%05X, ", getRegisterAddress());
+    strcat (format, dummy);
 
-    stream << "From Address: " << hex << getRegisterAddress() << ", ";
+    if (isIncrementingAddress()) strcat (format, "using Incrementing Addresses");
+    else strcat (format, "using Fixed Addressing");
 
-    if (isIncrementingAddress()) stream << "using Incrementing Addresses";
-    else stream << "using Fixed Addressing";
-
-    string str = stream.str();
-    stream.flush();
+    string str(format);
     const char * chr = str.c_str();
 
     return chr;
@@ -121,61 +120,58 @@ U32 SdioCmd53::getXferCount()
 
 const char* SdioCmd53Resp::getShortString()
 {
-    ostringstream stream;
     char format[200] = {0};
 
     sprintf(format, "0x%012llX, CMD53 Resp", cmdData);
-    //stream << format;
-    // stream << "0x" << hex << cmdData << " CMD53 Resp ";
-    // stream << "0x" <<  setw(2) << setfill('0') << hex << getData();
 
     string str(format);
-    stream.flush();
     const char * chr = str.c_str();
 
     return chr;
 }
 const char* SdioCmd53Resp::getDetailedString()
 {
-    ostringstream stream;
-    char format[200] = {0};
+    char dummy[1024] = {0};
+    char format[1024] = {0};
     U32 flags;
 
-    stream << "0x" << uppercase << hex << cmdData << ", CMD53 Rsp ";
+    sprintf (format, "0x%012llX, CMD53 Rsp Data: 0x%02X ", cmdData, getData());
 
-    stream << "Data: 0x" <<  setw(2) << setfill('0') << hex << getData() << " ";
     flags = getResponseBitFlags();
-    stream << "Flags: 0x"<< hex << setw(2) << setfill('0') << flags << ":";
-    if (flags & 0x80) stream << "COM_CRC_ERROR:";
-    if (flags & 0x40) stream << "ILLEGAL_COMMAND:";
+
+    sprintf (dummy, "Flags: 0x%02X:",flags);
+    strcat (format, dummy);
+
+    if (flags & 0x80) strcat (format, "COM_CRC_ERROR:");
+    if (flags & 0x40) strcat (format, "ILLEGAL_COMMAND:");
+
     switch (flags & 0x30)
     {
         case 0x00:
-            stream << "IO_CURRENT_STATE - DIS:";
+            strcat (format, "IO_CURRENT_STATE - DIS:");
             break;
         case 0x10:
-            stream << "IO_CURRENT_STATE - CMD:";
+            strcat (format, "IO_CURRENT_STATE - CMD:");
             break;
         case 0x20:
-            stream << "IO_CURRENT_STATE - TRN:";
+            strcat (format, "IO_CURRENT_STATE - TRN:");
             break;
         case 0x30:
-            stream << "IO_CURRENT_STATE - RFU:";
+            strcat (format, "IO_CURRENT_STATE - RFU:");
             break;
         case 0x08:
-            stream << "ERROR:";
+            strcat (format, "ERROR:");
             break;
         case 0x02:
-            stream << "FUNCTION_NUMBER invalid:";
+            strcat (format, "FUNCTION_NUMBER invalid:");
             break;
         case 0x01:
-            stream << "OUT_OF_RANGE:";
+            strcat (format, "OUT_OF_RANGE:");
             break;
     }
     
 
-    string str = stream.str();
-    stream.flush();
+    string str(format);
     const char * chr = str.c_str();
 
     return chr;

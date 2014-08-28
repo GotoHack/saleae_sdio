@@ -21,7 +21,6 @@ using namespace std;
 SdioCmd* SdioCmd::lastSdioHostCmd= 0;
 const char * SdioCmd::getShortString()
 {
-    ostringstream stream;
     char format[200] = {0};
 
     sprintf(format, "0x%012llX, CMD%d", cmdData, getCmd());
@@ -34,14 +33,10 @@ const char * SdioCmd::getShortString()
 
 const char * SdioCmd::getDetailedString()
 {
-    ostringstream stream;
     char format[200] = {0};
 
     sprintf(format, "0x%012llX, CMD%d", cmdData, getCmd());
     string str(format);
-    //stream << "0x" << hex << cmdData  << ", CMD" << getCmd();
-    //string str = stream.str();
-    //stream.flush();
     const char * chr = str.c_str();
 
     return chr;

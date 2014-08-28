@@ -15,17 +15,14 @@ using namespace std;
 
 const char * SdioCmd5::getDetailedString()
 {
-    ostringstream stream;
-    char format[200] = {0};
+    char format[1024] = {0};
     U32 occr = getOCCR();
 
-    stream << "0x" << uppercase << hex << cmdData << ", CMD5 ";
-    stream << "OCCR: " << hex << setw(6) << setfill('0') << occr << " ";
+    sprintf (format, "0x%012llX, CMD5 OCCR: 0x%06X ", cmdData, occr);
 
-    stream << parse_CMD5_OCR(occr);
-    stream << " ";
+    strcat (format, parse_CMD5_OCR(occr));
 
-    string str = stream.str();
+    string str(format);
     const char * chr = str.c_str();
 
     return chr;
@@ -39,35 +36,26 @@ U32 SdioCmd5::getOCCR()
 
 const char* SdioCmd5Resp::getShortString()
 {
-    ostringstream stream;
-    char format[200] = {0};
+    char format[1024] = {0};
     U32 occr = getOCCR();
 
-    stream << "0x" << uppercase << hex << cmdData << ", CMD5 Resp ";
+    sprintf (format, "0x%012llX, CMD5 Resp OCR: 0x%06X", cmdData, occr);
 
-    stream << "OCR: "<< "0x" <<  setw(6) << setfill('0') << hex << occr;
-
-    string str = stream.str();
+    string str(format);
     const char * chr = str.c_str();
 
     return chr;
 }
 const char* SdioCmd5Resp::getDetailedString()
 {
-    ostringstream stream;
-    char format[200] = {0};
+    char format[1024] = {0};
     U32 flags;
 
-    stream << "0x" << uppercase << hex << cmdData << ", CMD5 Rsp ";
-    stream << "Card Ready: " << isCardReady() << ", ";
-    stream << "Num Functions: " << numIOFunctions() << ", ";
-    stream << "Memory Present: " << isMemoryPresent() << ", ";
+    sprintf (format, "0x%012llX, CMD5 Rsp Card Ready: %d, Num Functions: %d, Memory Present: %d, OCCR: 0x%06X",
+            cmdData, isCardReady(), numIOFunctions(), isMemoryPresent(), getOCCR());
 
-    stream << "OCR: "<< "0x" <<  setw(6) << setfill('0') << hex << (unsigned int)getOCCR();
 
-    
-
-    string str = stream.str();
+    string str(format);
     const char * chr = str.c_str();
 
     return chr;

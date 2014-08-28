@@ -290,79 +290,79 @@ const char* parse_CMD5_RESP(unsigned long val)
 }
 const char* parse_CMD5_OCR(unsigned int ocr)
 {
-    ostringstream stream;
+    char format[1024] = {0};
 
-    stream << "OCR Values: ";
+    sprintf(format, "OCR Values: ");
     if (ocr & 0xff)
     {
-        stream << "Error -- OCR is Reserved value, ";
+        strcat (format, "Error -- OCR is Reserved value, ");
     }
     if (ocr & 0x100)
     {
-        stream << "2.0-2.1 Volts, ";
+        strcat (format, "2.0-2.1 Volts, ");
     }
     if (ocr & 0x200)
     {
-        stream << "2.1-2.2 Volts, ";
+        strcat (format,"2.1-2.2 Volts, ");
     }
     if (ocr & 0x400)
     {
-        stream << "2.2-2.3 Volts, ";
+        strcat (format, "2.2-2.3 Volts, ");
     }
     if (ocr & 0x800)
     {
-        stream << "2.3-2.4 Volts, ";
+        strcat (format, "2.3-2.4 Volts, ");
     }
     if (ocr & 0x1000)
     {
-        stream << "2.4-2.5 Volts, ";
+        strcat (format, "2.4-2.5 Volts, ");
     }
     if (ocr & 0x2000)
     {
-        stream << "2.5-2.6 Volts, ";
+        strcat (format, "2.5-2.6 Volts, ");
     }
     if (ocr & 0x4000)
     {
-        stream << "2.6-2.7 Volts, ";
+        strcat (format, "2.6-2.7 Volts, ");
     }
     if (ocr & 0x8000)
     {
-        stream << "2.7-2.8 Volts, ";
+        strcat (format, "2.7-2.8 Volts, ");
     }
     if (ocr & 0x10000)
     {
-        stream << "2.8-2.9 Volts, ";
+        strcat (format, "2.8-2.9 Volts, ");
     }
     if (ocr & 0x20000)
     {
-        stream << "2.9-3.0 Volts, ";
+        strcat (format, "2.9-3.0 Volts, ");
     }
     if (ocr & 0x40000)
     {
-        stream << "3.0-3.1 Volts, ";
+        strcat (format, "3.0-3.1 Volts, ");
     }
     if (ocr & 0x80000)
     {
-        stream << "3.1-3.2 Volts, ";
+        strcat (format, "3.1-3.2 Volts, ");
     }
     if (ocr & 0x100000)
     {
-        stream << "3.2-3.3 Volts, ";
+        strcat (format, "3.2-3.3 Volts, ");
     }
     if (ocr & 0x200000)
     {
-        stream << "3.3-3.4 Volts, ";
+        strcat (format, "3.3-3.4 Volts, ");
     }
     if (ocr & 0x400000)
     {
-        stream << "3.4-3.5 Volts, ";
+        strcat (format, "3.4-3.5 Volts, ");
     }
     if (ocr & 0x800000)
     {
-        stream << "3.5-3.6 Volts, ";
+        strcat (format, "3.5-3.6 Volts, ");
     }
 
-    string str = stream.str();
+    string str(format);
     const char * chr = str.c_str();
 
     return chr;

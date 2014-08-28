@@ -103,11 +103,11 @@ void SDIOAnalyzer::WorkerThread()
             // for now assume we are 4 bit.  we need a setting to choose 1/4 bit
 	        U64 absoluteLastSample = mCmd->GetSampleOfNextEdge();	//without moving, get the sample of the next transition. 
 
-            std::cout << "currentSampleNo: " << currentSampleNo << ", absoluteLastSample: "<< absoluteLastSample<< std::endl;
+            //std::cout << "currentSampleNo: " << currentSampleNo << ", absoluteLastSample: "<< absoluteLastSample<< std::endl;
             // move data lines to start bit
             AdvanceDataLinesToStartBit();
 
-            std::cout << "CMD53 Data: " ;
+            //std::cout << "CMD53 Data: " ;
             while ((currentSampleNo < absoluteLastSample) && 
                     ( mData0->WouldAdvancingToAbsPositionCauseTransition(absoluteLastSample) == true))
             {
@@ -133,14 +133,10 @@ void SDIOAnalyzer::WorkerThread()
                     mData2->AdvanceToAbsPosition(currentSampleNo);
                     mData3->AdvanceToAbsPosition(currentSampleNo);
                 }
-                std::cout << std::hex << dataValue << ":";
+                //std::cout << std::hex << dataValue << ":";
                 Frame dataFrame = ParseCurrentCommand(dataValue, currentSampleNo - (1* (numSamplesInHalfClock/2)), FRAME_TYPE_DATA_DATA);
-// #define FRAME_TYPE_CMD_DATA             0x01
-// #define FRAME_TYPE_DATA_DATA            0x02
-// #define FRAME_FLAGS_CMD53_DATA_START    0x01
-// #define FRAME_FLAGS_CMD53_DATA_END      0x02
             }
-            std::cout << std::endl;
+            //std::cout << std::endl;
         }
 	}
 }

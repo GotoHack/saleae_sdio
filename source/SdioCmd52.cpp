@@ -14,19 +14,22 @@ using namespace std;
 
 const char * SdioCmd52::getShortString()
 {
-    ostringstream stream;
-    char format[200] = {0};
+    char format[1024] = {0};
+    char dummy[1024] = {0};
 
-    stream << "0x" << uppercase << hex << cmdData << ", CMD52 ";
-    if (getRead()) stream << "R:";
-    else stream << "W:";
+    sprintf(format, "0x%012llX, CMD52 ", cmdData);
+    if (getRead()) strcat (format, "R: ");
+    else strcat (format, "W: ");
 
-    stream << "0x" <<  setw(2) << setfill('0') << hex << (unsigned int) getData();
-    if (getRead()) stream <<" from " << setw(5) << setfill('0') << hex << getRegisterAddress();
-    if (getWrite()) stream <<" to " << setw(5) << setfill('0') << hex << getRegisterAddress();
+    sprintf (dummy, "0x%02X ", getData());
+    strcat (format, dummy);
 
-    string str = stream.str();
-    stream.flush();
+
+    if (getRead()) sprintf (dummy, "from: 0x%05X", getRegisterAddress());
+    if (getWrite()) sprintf (dummy, " to: 0x%05X", getRegisterAddress());
+    strcat(format, dummy);
+
+    string str(format);
     const char * chr = str.c_str();
 
     return chr;
@@ -34,25 +37,27 @@ const char * SdioCmd52::getShortString()
 
 const char * SdioCmd52::getDetailedString()
 {
-    ostringstream stream;
-    char format[200] = {0};
+    char format[1024] = {0};
+    char dummy[1024] = {0};
 
-    stream << "0x" << uppercase << hex << cmdData << ", CMD52 ";
-    stream << "Function: " << getFunctionNumber() << " ";
-    if (getRead()) stream << "READ ";
-    else stream << "WRITE ";
-
-
-    stream << "0x" <<  setw(2) << setfill('0') << hex << getData();
-    if (getRead()) stream <<" from " << setw(5) << setfill('0') << hex << getRegisterAddress();
-    if (getWrite()) stream <<" to " << setw(5) << setfill('0') << hex << getRegisterAddress();
-
-    if (isReadAfterWrite()) stream << " -- RAW is set";
-    else stream << " -- RAW is not set";
+    sprintf(format, "0x%012llX, CMD52 Function %d ", cmdData, getFunctionNumber());
+    if (getRead()) strcat (format, "READ ");
+    else strcat (format, "WRITE ");
 
 
-    string str = stream.str();
-    stream.flush();
+    sprintf(dummy, "0x%02X ", getData());
+    strcat (format, (const char*)dummy);
+
+    if (getRead()) strcat (format, "from ");
+    if (getWrite()) strcat (format, "to ");
+    sprintf(dummy, "0x%05X ", getRegisterAddress());
+    strcat (format, (const char*)dummy);
+
+    if (isReadAfterWrite()) strcat (format, "-- RAW is set");
+    else strcat (format, "-- RAW is not set");
+
+
+    string str (format);
     const char * chr = str.c_str();
 
     return chr;
@@ -103,61 +108,60 @@ U32 SdioCmd52::getData()
 
 const char* SdioCmd52Resp::getShortString()
 {
-    ostringstream stream;
-    char format[200] = {0};
+    char format[1024] = {0};
 
-    stream << "0x" << uppercase << hex << cmdData << ", CMD52 Resp ";
 
-    stream << "0x" <<  setw(2) << setfill('0') << hex << getData();
+    sprintf (format, "0x%012llX, CMD52 Resp: 0x%02X", cmdData, getData());
 
-    string str = stream.str();
-    stream.flush();
+
+    string str(format);
     const char * chr = str.c_str();
 
     return chr;
 }
 const char* SdioCmd52Resp::getDetailedString()
 {
-    ostringstream stream;
-    char format[200] = {0};
+    char format[1024] = {0};
+    char dummy[1024] = {0};
     U32 flags;
 
-    stream << "0x" << uppercase << hex << cmdData << ", CMD52 Rsp ";
+    sprintf (format, "0x%012llX, CMD52 Rsp Data: 0x%02X ", cmdData, getData());
 
-    stream << "Data: 0x" <<  setw(2) << setfill('0') << hex << getData() << " ";
     flags = getResponseBitFlags();
-    stream << "Flags: 0x"<< hex << setw(2) << setfill('0') << flags << ":";
-    if (flags & 0x80) stream << "COM_CRC_ERROR:";
-    if (flags & 0x40) stream << "ILLEGAL_COMMAND:";
+    sprintf (dummy, "Flags: 0x%02X:", flags);
+    strcat(format, dummy);
+
+    if (flags & 0x80) strcat (format, "COM_CRC_ERROR:");
+    if (flags & 0x40) strcat (format, "ILLEGAL_COMMAND:");
+
     switch (flags & 0x30)
     {
         case 0x00:
-            stream << "IO_CURRENT_STATE - DIS:";
+            strcat (format, "IO_CURRENT_STATE - DIS:");
             break;
         case 0x10:
-            stream << "IO_CURRENT_STATE - CMD:";
+            strcat (format, "IO_CURRENT_STATE - CMD:");
             break;
         case 0x20:
-            stream << "IO_CURRENT_STATE - TRN:";
+            strcat (format, "IO_CURRENT_STATE - TRN:");
             break;
         case 0x30:
-            stream << "IO_CURRENT_STATE - RFU:";
+            strcat (format, "IO_CURRENT_STATE - RFU:");
             break;
         case 0x08:
-            stream << "ERROR:";
+            strcat (format, "ERROR:");
             break;
         case 0x02:
-            stream << "FUNCTION_NUMBER invalid:";
+            strcat (format, "FUNCTION_NUMBER invalid:");
             break;
         case 0x01:
-            stream << "OUT_OF_RANGE:";
+            strcat (format, "OUT_OF_RANGE:");
             break;
     }
 
-    stream << "             ";
     
 
-    string str = stream.str();
+    string str(format);
     const char * chr = str.c_str();
 
     return chr;
