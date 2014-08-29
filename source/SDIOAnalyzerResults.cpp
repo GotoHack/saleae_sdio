@@ -51,6 +51,8 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
 	file_stream << "Time [s],Value" << std::endl;
 
 	U64 num_frames = GetNumFrames();
+    
+
 	for( U32 i=0; i < num_frames; i++ )
 	{
 		Frame frame = GetFrame( i );
@@ -68,6 +70,15 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
         if (frame.mType == FRAME_TYPE_CMD_DATA)
         {
             SdioCmd *tmp = SdioCmd::CreateSdioCmd(frame.mData1);
+
+            if (tmp->getCmd() == 52)
+            {
+
+                // set up the CCCR for exporting
+                // the cccr will be static, so no need to free it
+                CCCR *cccr = CCCR::BuildCCCR(frame.mData1);
+            }
+           
             if (export_type_user_id == SDIO_EXPORT_FULL)
             {
                 file_stream << time_str << "," << "\t" << tmp->getDetailedString() << endl;

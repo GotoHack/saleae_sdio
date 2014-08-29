@@ -65,9 +65,6 @@ SdioCmd* SdioCmd::CreateSdioCmd(U64 data)
             break;
         case 52:
             {
-                // the cccr will be static, so no need to free it
-                CCCR *cccr = CCCR::BuildCCCR(data);
-
                 if (CMD_DIR(data) == DIR_FROM_HOST)
                 {
                     ptr = new SdioCmd52(data);
