@@ -24,9 +24,7 @@ void SDIOAnalyzer::WorkerThread()
 {
 	mResults.reset( new SDIOAnalyzerResults( this, mSettings.get() ) );
 	DataBuilder cmdData;
-	DataBuilder dataData;
     U64 cmdValue;
-    U64 dataValue;
     U32 i;
     BitState cmdBitState;
 
@@ -60,7 +58,7 @@ void SDIOAnalyzer::WorkerThread()
         // we know cmd is high, wait till the next transition, which should be the start bit
         AdvanceAllLinesToNextStartBit();
         cmdData.Reset(&cmdValue, AnalyzerEnums::MsbFirst, 48);
-        
+
         // now we're at the start bit, we start using our clock as our sample generator
         for (i = 0; i < 48; i++)
         {
@@ -82,9 +80,6 @@ void SDIOAnalyzer::WorkerThread()
             
         // advance clock 1 cycle
         mClock->AdvanceToNextEdge();
-        mClock->AdvanceToNextEdge();
-        mClock->AdvanceToNextEdge();
-        mClock->AdvanceToNextEdge();
 
         currentSampleNo = mClock->GetSampleNumber();
 
@@ -95,52 +90,83 @@ void SDIOAnalyzer::WorkerThread()
         mData2->AdvanceToAbsPosition(currentSampleNo);
         mData3->AdvanceToAbsPosition(currentSampleNo);
         // std::cout << "Current Sample Number (b): " << currentSampleNo << "mCmd->GetBitState(): "<< mCmd->GetBitState() << std::endl;
+
+
         
 
         // check if this is a command 53 ack from the card, we need to look for data
         if ( (CMD_VAL(cmdValue) == 53) && (CMD_DIR(cmdValue) == 0))
         {
-            // for now assume we are 4 bit.  we need a setting to choose 1/4 bit
-	        U64 absoluteLastSample = mCmd->GetSampleOfNextEdge();	//without moving, get the sample of the next transition. 
-
-            //std::cout << "currentSampleNo: " << currentSampleNo << ", absoluteLastSample: "<< absoluteLastSample<< std::endl;
-            // move data lines to start bit
-            AdvanceDataLinesToStartBit();
-
-            //std::cout << "CMD53 Data: " ;
-            while ((currentSampleNo < absoluteLastSample) && 
-                    ( mData0->WouldAdvancingToAbsPositionCauseTransition(absoluteLastSample) == true))
-            {
-                frameStartSample = currentSampleNo - (numSamplesInHalfClock/2);
-                // frameStartSample = currentSampleNo;
-                dataData.Reset(&dataValue, AnalyzerEnums::MsbFirst, 8);
-                for (i = 0; i < 2; i++)
-                {
-                    // assume we are on the rising edge of the clock, so take a sample and advance for the  next one
-                    dataData.AddBit(mData3->GetBitState());
-                    dataData.AddBit(mData2->GetBitState());
-                    dataData.AddBit(mData1->GetBitState());
-                    dataData.AddBit(mData0->GetBitState());
-                    
-                    // advance to next rising edge (i.e. full clock cycle)
-                    mClock->AdvanceToNextEdge();
-                    mClock->AdvanceToNextEdge();
-
-                    // now get our position, based on clock
-                    currentSampleNo = mClock->GetSampleNumber();
-                    mData0->AdvanceToAbsPosition(currentSampleNo);
-                    mData1->AdvanceToAbsPosition(currentSampleNo);
-                    mData2->AdvanceToAbsPosition(currentSampleNo);
-                    mData3->AdvanceToAbsPosition(currentSampleNo);
-                }
-                //std::cout << std::hex << dataValue << ":";
-                Frame dataFrame = ParseCurrentCommand(dataValue, currentSampleNo - (1* (numSamplesInHalfClock/2)), FRAME_TYPE_DATA_DATA);
-            }
-            //std::cout << std::endl;
+            readCmd53Data();
         }
 	}
 }
+void SDIOAnalyzer::readCmd53Data()
+{
+    // for now assume we are 4 bit.  we need a setting to choose 1/4 bit
+    U64 absoluteLastSample = (U64)-1;
+    if (mCmd->DoMoreTransitionsExistInCurrentData())
+    {
+        absoluteLastSample = mCmd->GetSampleOfNextEdge();	//without moving, get the sample of the next transition. 
 
+        // std::cout << "currentSampleNo: " << currentSampleNo << ", absoluteLastSample: "<< absoluteLastSample<< std::endl;
+        // move data lines to start bit
+        AdvanceDataLinesToStartBit();
+
+        // std::cout << "CMD53 Data: " ;
+        while ((currentSampleNo < absoluteLastSample) && 
+                ( mData0->WouldAdvancingToAbsPositionCauseTransition(absoluteLastSample) == true))
+        {
+            readCmd53DataLines();
+        }
+        // std::cout << std::endl;
+    }
+    else
+    {
+        // this is most likely the last bit of data and there is no more cmd line activity
+        AdvanceDataLinesToStartBit();
+
+        //std::cout << "CMD53 Data: " ;
+        while  ( mData0->DoMoreTransitionsExistInCurrentData() ) 
+        {
+            readCmd53DataLines();
+        }
+        // std::cout << std::endl;
+    }
+
+}
+
+void SDIOAnalyzer::readCmd53DataLines()
+{
+	DataBuilder dataData;
+    U64 dataValue;
+    U32 i;
+
+    frameStartSample = currentSampleNo - (numSamplesInHalfClock/2);
+    // frameStartSample = currentSampleNo;
+    dataData.Reset(&dataValue, AnalyzerEnums::MsbFirst, 8);
+    for (i = 0; i < 2; i++)
+    {
+        // assume we are on the rising edge of the clock, so take a sample and advance for the  next one
+        dataData.AddBit(mData3->GetBitState());
+        dataData.AddBit(mData2->GetBitState());
+        dataData.AddBit(mData1->GetBitState());
+        dataData.AddBit(mData0->GetBitState());
+
+        // advance to next rising edge (i.e. full clock cycle)
+        mClock->AdvanceToNextEdge();
+        mClock->AdvanceToNextEdge();
+
+        // now get our position, based on clock
+        currentSampleNo = mClock->GetSampleNumber();
+        mData0->AdvanceToAbsPosition(currentSampleNo);
+        mData1->AdvanceToAbsPosition(currentSampleNo);
+        mData2->AdvanceToAbsPosition(currentSampleNo);
+        mData3->AdvanceToAbsPosition(currentSampleNo);
+    }
+    // std::cout << std::hex << dataValue << ":";
+    Frame dataFrame = ParseCurrentCommand(dataValue, currentSampleNo - (1* (numSamplesInHalfClock/2)), FRAME_TYPE_DATA_DATA);
+}
 Frame SDIOAnalyzer::ParseCurrentCommand(U64 cmdValue, U64 currentSample, U8 type, U8 flags)
 {
     //we have a byte to save. 

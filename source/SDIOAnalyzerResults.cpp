@@ -46,9 +46,20 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
 	U64 trigger_sample = mAnalyzer->GetTriggerSample();
 	U32 sample_rate = mAnalyzer->GetSampleRate();
     double timeStamp = 0.0;
-    // std::cout <<  "export_type_user_id: 0x" << std::hex << export_type_user_id << std::endl;
 
-	file_stream << "Time [s],Value" << std::endl;
+
+    if ( (export_type_user_id == SDIO_EXPORT_FULL) ||(export_type_user_id == SDIO_EXPORT_SHORT))
+    {
+        // if you want sample numbers
+        // file_stream << "Sample Number, Time [s] ,Value ,Description" << std::endl;
+        file_stream << "Time [s] ,Value ,Description" << std::endl;
+    }
+    else
+    {
+        // if you want sample numbers
+        file_stream << "Sample Number, Time [s] ,Value ,Description" << std::endl;
+        // file_stream << "Time [s] ,Value"<< std::endl;
+    }
 
 	U64 num_frames = GetNumFrames();
     
@@ -62,9 +73,19 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
         timeStamp = frame.mStartingSampleInclusive;
         timeStamp -= trigger_sample;
         timeStamp /= sample_rate;
-        // only if we want sample numbers
-        // sprintf(time_str, "%012lld %0.10f", frame.mStartingSampleInclusive,timeStamp);
-        sprintf(time_str, "%012lld", frame.mStartingSampleInclusive);
+
+        if ( (export_type_user_id == SDIO_EXPORT_FULL) ||(export_type_user_id == SDIO_EXPORT_SHORT))
+        {
+            // only if we want sample numbers
+            // sprintf(time_str, "%012lld %0.10f", frame.mStartingSampleInclusive,timeStamp);
+            sprintf(time_str, "%012lld", timeStamp);
+        }
+        else
+        {
+            // only if we want sample numbers
+            // sprintf(time_str, "%012lld %0.10f", frame.mStartingSampleInclusive,timeStamp);
+            sprintf(time_str, "%012lld", timeStamp);
+        }
 
         // if regular CMD line data
         if (frame.mType == FRAME_TYPE_CMD_DATA)

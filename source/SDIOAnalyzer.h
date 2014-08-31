@@ -52,6 +52,8 @@ protected: //vars
 private: // internal functions
     U64 AdvanceAllLinesToNextStartBit();
     U64 AdvanceDataLinesToStartBit();
+    void readCmd53Data();
+    void readCmd53DataLines();
     Frame ParseCurrentCommand(U64 cmdValue, U64 currentSample, U8 type=FRAME_TYPE_CMD_DATA, U8 flags=0);
 };
 
