@@ -12,7 +12,7 @@
 
 using namespace std;
 
-const char * SdioCmd52::getShortString()
+string* SdioCmd52::getShortString()
 {
     char format[1024] = {0};
     char dummy[1024] = {0};
@@ -29,13 +29,13 @@ const char * SdioCmd52::getShortString()
     if (getWrite()) sprintf (dummy, " to: 0x%05X", getRegisterAddress());
     strcat(format, dummy);
 
-    string str(format);
-    const char * chr = str.c_str();
-
-    return chr;
+    string *str = new string(format);
+    // const char * chr = str.c_str();
+    // return chr;
+    return str;
 }
 
-const char * SdioCmd52::getDetailedString()
+string* SdioCmd52::getDetailedString()
 {
     char format[1024] = {0};
     char dummy[1024] = {0};
@@ -57,10 +57,10 @@ const char * SdioCmd52::getDetailedString()
     else strcat (format, "-- RAW is not set");
 
 
-    string str (format);
-    const char * chr = str.c_str();
-
-    return chr;
+    string *str  = new string(format);
+    // const char * chr = str.c_str();
+    // return chr;
+    return str;
 }
 bool SdioCmd52::getRead()
 {
@@ -79,7 +79,8 @@ bool SdioCmd52::getWrite()
 
 U32 SdioCmd52::getFunctionNumber()
 {
-    U8 fun = (U8)CMD52_FUN(cmdData);
+    U32 fun = (U32)CMD52_FUN(cmdData);
+	return fun;
 }
 
 bool SdioCmd52::isReadAfterWrite()
@@ -106,7 +107,7 @@ U32 SdioCmd52::getData()
 }
 
 
-const char* SdioCmd52Resp::getShortString()
+string* SdioCmd52Resp::getShortString()
 {
     char format[1024] = {0};
 
@@ -114,12 +115,12 @@ const char* SdioCmd52Resp::getShortString()
     sprintf (format, "0x%012llX, CMD52 Resp: 0x%02X", cmdData, getData());
 
 
-    string str(format);
-    const char * chr = str.c_str();
-
-    return chr;
+    string *str = new string(format);
+    // const char * chr = str.c_str();
+    // return chr;
+    return str;
 }
-const char* SdioCmd52Resp::getDetailedString()
+string* SdioCmd52Resp::getDetailedString()
 {
     char format[1024] = {0};
     char dummy[1024] = {0};
@@ -161,10 +162,10 @@ const char* SdioCmd52Resp::getDetailedString()
 
     
 
-    string str(format);
-    const char * chr = str.c_str();
-
-    return chr;
+    string *str = new string(format);
+    // const char * chr = str.c_str();
+    // return chr;
+    return str;
 }
 
 U32 SdioCmd52Resp::getResponseBitFlags()

@@ -1,5 +1,10 @@
+#include "LogicPublicTypes.h"
+#include <string>
+using namespace std;
+
 #ifndef SDIOParser_H
 #define SDIOParser_H
+
 
 #define DIR_FROM_HOST   1
 #define DIR_FROM_CARD   0
@@ -42,23 +47,23 @@
 #define CMD3_RESP_RCA(x)    ((x >> 24) & 0xffff)
 #define CMD3_RESP_STATUS(x) ((x >> 8) & 0xffff)
 
-extern const char* parse_str(unsigned long val);
-extern const char* parse_CMD52(unsigned long val);
-extern const char* parse_CMD52_COMMAND(unsigned long val);
-extern const char* parse_CMD52_RESP(unsigned long val);
+extern string* parse_str(U64 val);
+extern string* parse_CMD52(U64 val);
+extern string* parse_CMD52_COMMAND(U64 val);
+extern string* parse_CMD52_RESP(U64 val);
 
-extern const char* parse_CMD53(unsigned long val);
-extern const char* parse_CMD53_COMMAND(unsigned long val);
-extern const char* parse_CMD53_RESP(unsigned long val);
+extern string* parse_CMD53(U64 val);
+extern string* parse_CMD53_COMMAND(U64 val);
+extern string* parse_CMD53_RESP(U64 val);
 
-extern const char* parse_CMD5(unsigned long val);
-extern const char* parse_CMD5_COMMAND(unsigned long val);
-extern const char* parse_CMD5_RESP(unsigned long val);
-extern const char* parse_CMD5_OCR(unsigned int val);
+extern string* parse_CMD5(U64 val);
+extern string* parse_CMD5_COMMAND(U64 val);
+extern string* parse_CMD5_RESP(U64 val);
+extern string* parse_CMD5_OCR(unsigned int val);
 
-extern const char* parse_CMD3(unsigned long val);
-extern const char* parse_CMD3_COMMAND(unsigned long val);
-extern const char* parse_CMD3_RESP(unsigned long val);
+extern string* parse_CMD3(U64 val);
+extern string* parse_CMD3_COMMAND(U64 val);
+extern string* parse_CMD3_RESP(U64 val);
 
 
 #endif // SDIOParser_H

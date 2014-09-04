@@ -252,7 +252,7 @@ void CCCR::DumpFBRTable(void)
 }
 void CCCR::DumpFBRTable(std::ostream &stream)
 {
-    U32 i,funcNo, funcIndex;
+    U32 funcIndex;
     char buffer[400] = {0};
 
     if (theCCCR != 0)
@@ -478,17 +478,23 @@ void TUPLE::dump(std::ostream &stream)
     stream << "\t=================================================" << endl;
 
 
-    stream << "\t0x" << setw(4) << setfill('0') << hex << (address + i++) <<"\t\t" <<
+    stream << "\t0x" << setw(4) << setfill('0') << hex << (address + i) <<"\t" <<
+        setw(2) << setfill('0') << hex << "(0x" << i << ")" << "\t\t" <<
         setw(2) << setfill('0') << tplCode << "\t\t" << tupleNames[tplCode] << endl;
+    i++;
 
-    stream << "\t0x" << setw(4) << setfill('0') << hex << (address + i++) <<"\t\t" <<
+    stream << "\t0x" << setw(4) << setfill('0') << hex << (address + i) <<"\t" <<
+        setw(2) << setfill('0') << hex << "(0x" << i << ")" << "\t\t" <<
         setw(2) << setfill('0') << size << endl;
+    i++;
 
     // now dump the body
     for (it = body.begin(); it != body.end(); it++)
     {
-        stream << "\t0x" << setw(4) << setfill('0') << hex << (address + i++) <<"\t\t" <<
+        stream << "\t0x" << setw(4) << setfill('0') << hex << (address + i) <<"\t" <<
+            setw(2) << setfill('0') << hex << "(0x" << i << ")" << "\t\t" <<
             setw(2) << setfill('0') << *it << endl;
+        i++;
     }
     stream << "\t=================================================" << endl;
 }

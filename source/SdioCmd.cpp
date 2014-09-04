@@ -19,27 +19,28 @@
 using namespace std;
 
 SdioCmd* SdioCmd::lastSdioHostCmd= 0;
-const char * SdioCmd::getShortString()
+string* SdioCmd::getShortString()
 {
     char format[200] = {0};
 
     sprintf(format, "0x%012llX, CMD%d", cmdData, getCmd());
 
-    string str(format);
-    const char * chr = str.c_str();
+    string *str = new string(format);
+    //const char * chr = str.c_str();
 
-    return chr;
+    return str;
 }
 
-const char * SdioCmd::getDetailedString()
+string* SdioCmd::getDetailedString()
 {
     char format[200] = {0};
 
     sprintf(format, "0x%012llX, CMD%d", cmdData, getCmd());
-    string str(format);
-    const char * chr = str.c_str();
+    string *str = new string(format);
+    //const char * chr = str.c_str();
 
-    return chr;
+    //return chr;
+    return str;
 }
 
 SdioCmd* SdioCmd::CreateSdioCmd(U64 data)

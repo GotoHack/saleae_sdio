@@ -8,8 +8,8 @@ class SdioCmd53 : public SdioCmd
 {
 public:
     SdioCmd53(U64 data):SdioCmd(data){};
-    virtual const char* getShortString();
-    virtual const char* getDetailedString();
+    virtual string *getShortString();
+    virtual string *getDetailedString();
 
     bool getRead(); 
     bool getWrite(); 
@@ -27,8 +27,8 @@ class SdioCmd53Resp : public SdioCmd52Resp
 {
 public:
     SdioCmd53Resp(U64 data):SdioCmd52Resp(data){};
-    virtual const char* getShortString();
-    virtual const char* getDetailedString();
+    virtual string *getShortString();
+    virtual string *getDetailedString();
 };
 
 

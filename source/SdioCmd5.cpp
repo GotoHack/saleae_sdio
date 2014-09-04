@@ -13,19 +13,22 @@
 using namespace std;
 
 
-const char * SdioCmd5::getDetailedString()
+string* SdioCmd5::getDetailedString()
 {
     char format[1024] = {0};
     U32 occr = getOCCR();
 
     sprintf (format, "0x%012llX, CMD5 OCCR: 0x%06X ", cmdData, occr);
 
-    strcat (format, parse_CMD5_OCR(occr));
+	string *s = parse_CMD5_OCR(occr);
+	strcat (format, s->c_str());
+	delete s;
 
-    string str(format);
-    const char * chr = str.c_str();
 
-    return chr;
+    string* str = new string(format);
+    //const char * chr = str.c_str();
+    //return chr;
+    return str;
 }
 
 U32 SdioCmd5::getOCCR()
@@ -34,30 +37,29 @@ U32 SdioCmd5::getOCCR()
     return occr;
 }
 
-const char* SdioCmd5Resp::getShortString()
+string* SdioCmd5Resp::getShortString()
 {
     char format[1024] = {0};
     U32 occr = getOCCR();
 
     sprintf (format, "0x%012llX, CMD5 Resp OCR: 0x%06X", cmdData, occr);
 
-    string str(format);
-    const char * chr = str.c_str();
-
-    return chr;
+    string *str = new string(format);
+    // const char * chr = str.c_str();
+    // return chr;
+    return str;
 }
-const char* SdioCmd5Resp::getDetailedString()
+string* SdioCmd5Resp::getDetailedString()
 {
     char format[1024] = {0};
-    U32 flags;
 
     sprintf (format, "0x%012llX, CMD5 Rsp Card Ready: %d, Num Functions: %d, Memory Present: %d, OCCR: 0x%06X",
             cmdData, isCardReady(), numIOFunctions(), isMemoryPresent(), getOCCR());
 
 
-    string str(format);
-    const char * chr = str.c_str();
-
-    return chr;
+    string *str = new string(format);
+    // const char * chr = str.c_str();
+    // return chr;
+    return str;
 }
 

@@ -3,6 +3,9 @@
 
 #include "LogicPublicTypes.h"
 #include "SDIOParser.h"
+#include "string"
+
+using namespace std;
 
 
 class SdioCmd
@@ -10,8 +13,8 @@ class SdioCmd
 public:
     SdioCmd(U64 data) { cmdData = data;}
 
-    virtual const char* getShortString();
-    virtual const char* getDetailedString();
+    virtual string* getShortString();
+    virtual string* getDetailedString();
 
     virtual U32 getCmd() { return CMD_VAL(cmdData); };
     virtual U32 getDir() { return CMD_DIR(cmdData); };

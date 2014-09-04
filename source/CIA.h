@@ -14,7 +14,12 @@
 
 using namespace std;
 
+#ifndef _MSC_VER
 #define PACKED __attribute__ ((__packed__))
+#else
+#define PACKED
+#pragma pack(push, 1)
+#endif
 
 #define PRINTF_BIT_PATTERN "| %x%x%x%x | %x%x%x%x |"
 #define PRINTF_BIT(x) (1 & x >> 7), \
@@ -169,5 +174,9 @@ class CCCR
         bool HandleCmd52Response(U64 data);
 
 };
+
+#ifdef _MSC_VER
+#pragma pack(pop)
+#endif
 
 #endif /* CIA_H */

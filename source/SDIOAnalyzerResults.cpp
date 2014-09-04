@@ -28,7 +28,9 @@ void SDIOAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& channel,
     if (frame.mType == FRAME_TYPE_CMD_DATA)
     {
         SdioCmd *tmp = SdioCmd::CreateSdioCmd(frame.mData1);
-        AddResultString( tmp->getShortString() );
+        string *s = tmp->getShortString();
+		AddResultString( s->c_str() );
+        delete s;
     }
     // else, this is data line data, should be partitioned into bytes
     else
@@ -70,7 +72,7 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
         U64 cmdType = frame.mData1;
 		
 		char time_str[128];
-        timeStamp = frame.mStartingSampleInclusive;
+        timeStamp = (double)frame.mStartingSampleInclusive;
         timeStamp -= trigger_sample;
         timeStamp /= sample_rate;
 
@@ -102,11 +104,16 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
            
             if (export_type_user_id == SDIO_EXPORT_FULL)
             {
-                file_stream << time_str << "," << "\t" << tmp->getDetailedString() << endl;
+				// const char* detail = tmp->getDetailedString();
+				string *s = tmp->getDetailedString();
+				file_stream << time_str << "," << "\t" << s->c_str() << endl;
+                delete s;
             }
             else if (export_type_user_id == SDIO_EXPORT_SHORT)
             {
-                file_stream << time_str << "," << "\t" << tmp->getShortString() << endl;
+                string *s = tmp->getShortString();
+                file_stream << time_str << "," << "\t" << s->c_str() << endl;
+                delete s;
             }
             else
             {
@@ -167,4 +174,5 @@ char* SDIOAnalyzerResults::ParseCommand(U64 data)
 }
 char* SDIOAnalyzerResults::ParseCmd52(U64 data)
 {
+	return "";
 }

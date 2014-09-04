@@ -183,6 +183,7 @@ Frame SDIOAnalyzer::ParseCurrentCommand(U64 cmdValue, U64 currentSample, U8 type
     mResults->AddFrame( frame );
     mResults->CommitResults();
     ReportProgress( frame.mEndingSampleInclusive );
+	return frame;
 }
 
 U64 SDIOAnalyzer::AdvanceAllLinesToNextStartBit()

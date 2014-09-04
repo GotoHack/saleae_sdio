@@ -11,11 +11,12 @@
 using namespace::std;
 
 
-const char* parse_str(unsigned long val)
+string* parse_str(U64 val)
 {
     ostringstream stream;
     char format[200] = {0};
-    const char* str = "";
+    //const char* str = "";
+    string  *str;
     
     switch(CMD_VAL(val))
     {
@@ -39,9 +40,9 @@ const char* parse_str(unsigned long val)
     }
     return str;
 }
-const char* parse_CMD52(unsigned long val)
+string* parse_CMD52(U64 val)
 {
-    const char* str = "";
+    string* str;
     // if the direction bit indicates command (set)
     if (CMD_DIR(val) == DIR_FROM_HOST)
     {
@@ -55,7 +56,7 @@ const char* parse_CMD52(unsigned long val)
     return str;
 }
 
-const char* parse_CMD52_COMMAND(unsigned long val)
+string* parse_CMD52_COMMAND(U64 val)
 {
     ostringstream stream;
     char format[200] = {0};
@@ -78,12 +79,13 @@ const char* parse_CMD52_COMMAND(unsigned long val)
     sprintf(format, "0x%02lX", CMD52_DATA(val));
     stream << "Data: " << format << " ";
 
-    string str = stream.str();
-    const char * chr = str.c_str();
+    string *str = new string (stream.str());
+    return str;
+    // const char * chr = str.c_str();
 
-    return chr;
+    // return chr;
 }
-const char* parse_CMD52_RESP(unsigned long val)
+string* parse_CMD52_RESP(U64 val)
 {
     ostringstream stream;
     char format[200] = {0};
@@ -141,15 +143,16 @@ const char* parse_CMD52_RESP(unsigned long val)
     sprintf(format, "0x%02lX", CMD52_RESP_DATA(val));
     stream << "Data: " << format << " ";
 
-    string str = stream.str();
-    const char * chr = str.c_str();
+    string *str = new string (stream.str());
+    return str;
+    // const char * chr = str.c_str();
 
-    return chr;
+    // return chr;
 }
 
-const char* parse_CMD53(unsigned long val)
+string* parse_CMD53(U64 val)
 {
-    const char* str = "";
+    string* str;
     // if the direction bit indicates command (set)
     if (CMD_DIR(val) == DIR_FROM_HOST)
     {
@@ -162,7 +165,7 @@ const char* parse_CMD53(unsigned long val)
     }
     return str;
 }
-const char* parse_CMD53_COMMAND(unsigned long val)
+string* parse_CMD53_COMMAND(U64 val)
 {
     ostringstream stream;
     char format[200] = {0};
@@ -228,19 +231,20 @@ const char* parse_CMD53_COMMAND(unsigned long val)
     }
 
 
-    string str = stream.str();
-    const char * chr = str.c_str();
+    string *str = new string (stream.str());
+    return str;
+    // const char * chr = str.c_str();
 
-    return chr;
+    // return chr;
 }
-const char* parse_CMD53_RESP(unsigned long val)
+string* parse_CMD53_RESP(U64 val)
 {
     return parse_CMD52_RESP(val);
 }
 
-const char* parse_CMD5(unsigned long val)
+string* parse_CMD5(U64 val)
 {
-    const char* str = "";
+    string* str;
     // if the direction bit indicates command (set)
     if (CMD_DIR(val) == DIR_FROM_HOST)
     {
@@ -253,7 +257,7 @@ const char* parse_CMD5(unsigned long val)
     }
     return str;
 }
-const char* parse_CMD5_COMMAND(unsigned long val)
+string* parse_CMD5_COMMAND(U64 val)
 {
     ostringstream stream;
     char format[200] = {0};
@@ -261,14 +265,17 @@ const char* parse_CMD5_COMMAND(unsigned long val)
 
     sprintf(format, "0x%06X", ocr);
     stream << " CMD 5 OCR: " << format << " ";
-    stream << parse_CMD5_OCR(ocr);
+	string *s = parse_CMD5_OCR(ocr);
+    stream << s;
+	delete s;
 
-    string str = stream.str();
-    const char * chr = str.c_str();
+    string *str = new string (stream.str());
+    return str;
+    // const char * chr = str.c_str();
 
-    return chr;
+    // return chr;
 }
-const char* parse_CMD5_RESP(unsigned long val)
+string* parse_CMD5_RESP(U64 val)
 {
     ostringstream stream;
     char format[200] = {0};
@@ -283,12 +290,13 @@ const char* parse_CMD5_RESP(unsigned long val)
     stream << "OCR: " << format << " ";
     stream << parse_CMD5_OCR(ocr);
 
-    string str = stream.str();
-    const char * chr = str.c_str();
+    string *str = new string (stream.str());
+    return str;
+    // const char * chr = str.c_str();
 
-    return chr;
+    // return chr;
 }
-const char* parse_CMD5_OCR(unsigned int ocr)
+string* parse_CMD5_OCR(unsigned int ocr)
 {
     char format[1024] = {0};
 
@@ -362,15 +370,16 @@ const char* parse_CMD5_OCR(unsigned int ocr)
         strcat (format, "3.5-3.6 Volts, ");
     }
 
-    string str(format);
-    const char * chr = str.c_str();
+    string *str = new string(format);
+    return str;
+    //const char * chr = str.c_str();
 
-    return chr;
+    //return chr;
 }
 
-const char* parse_CMD3(unsigned long val)
+string* parse_CMD3(U64 val)
 {
-    const char* str = "";
+    string* str;
     // if the direction bit indicates command (set)
     if (CMD_DIR(val) == DIR_FROM_HOST)
     {
@@ -383,18 +392,19 @@ const char* parse_CMD3(unsigned long val)
     }
     return str;
 }
-const char* parse_CMD3_COMMAND(unsigned long val)
+string* parse_CMD3_COMMAND(U64 val)
 {
     ostringstream stream;
 
     stream << " CMD 3 -- stuff bits only.... ";
 
-    string str = stream.str();
-    const char * chr = str.c_str();
+    string *str = new string (stream.str());
+    return str;
+    // const char * chr = str.c_str();
 
-    return chr;
+    // return chr;
 }
-const char* parse_CMD3_RESP(unsigned long val)
+string* parse_CMD3_RESP(U64 val)
 {
     ostringstream stream;
     char format[200] = {0};
@@ -433,8 +443,9 @@ const char* parse_CMD3_RESP(unsigned long val)
         stream << "ERROR -- status bits 12:0 should be all 0, but something is set ";
     }
     
-    string str = stream.str();
-    const char * chr = str.c_str();
+    string *str = new string (stream.str());
+    return str;
+    // const char * chr = str.c_str();
 
-    return chr;
+    // return chr;
 }

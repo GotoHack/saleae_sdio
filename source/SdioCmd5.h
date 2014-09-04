@@ -7,7 +7,7 @@ class SdioCmd5 : public SdioCmd
 {
 public:
     SdioCmd5(U64 data):SdioCmd(data){};
-    virtual const char* getDetailedString();
+    virtual string *getDetailedString();
 
     U32  getOCCR();
 };
@@ -16,8 +16,8 @@ class SdioCmd5Resp : public SdioCmd
 {
 public:
     SdioCmd5Resp(U64 data):SdioCmd(data){};
-    virtual const char* getShortString();
-    virtual const char* getDetailedString();
+    virtual string *getShortString();
+    virtual string *getDetailedString();
 
     U32 getOCCR()           {U32 occr = (U32)CMD5_RESP_OCR(cmdData); return occr;};
     bool isCardReady ()     { bool ready = (bool)CMD5_RESP_C(cmdData); return ready;};

@@ -12,12 +12,12 @@
 
 using namespace std;
 
-const char * SdioCmd53::getShortString()
+string* SdioCmd53::getShortString()
 {
     char dummy[1024] = {0};
     char format[1024] = {0};
 
-    sprintf (format, "0x%012llX, CMD53 ");
+    sprintf (format, "0x%012llX, CMD53 ", cmdData);
     if (getRead()) strcat (format, "R:");
     else strcat (format, "W:");
 
@@ -27,18 +27,18 @@ const char * SdioCmd53::getShortString()
     if (isBlockMode()) strcat (format, " Blks");
     else strcat (format, " Bytes");
 
-    string str(format);
-    const char * chr = str.c_str();
-
-    return chr;
+    string *str = new string(format);
+    // const char * chr = str.c_str();
+    // return chr;
+    return str;
 }
 
-const char * SdioCmd53::getDetailedString()
+string* SdioCmd53::getDetailedString()
 {
     char dummy[1024] = {0};
     char format[1024] = {0};
 
-    sprintf (format, "0x%012llX, CMD53 Function: %d", cmdData, getFunctionNumber());
+    sprintf (format, "0x%012llX, CMD53 Function: %d ", cmdData, getFunctionNumber());
     if (getRead()) strcat (format, "Read, ");
     else strcat (format, "Write, ");
 
@@ -54,10 +54,10 @@ const char * SdioCmd53::getDetailedString()
     if (isIncrementingAddress()) strcat (format, "using Incrementing Addresses");
     else strcat (format, "using Fixed Addressing");
 
-    string str(format);
-    const char * chr = str.c_str();
-
-    return chr;
+    string *str = new string(format);
+    // const char * chr = str.c_str();
+    // return chr;
+    return str;
 }
 bool SdioCmd53::getRead()
 {
@@ -76,7 +76,8 @@ bool SdioCmd53::getWrite()
 
 U32 SdioCmd53::getFunctionNumber()
 {
-    U8 fun = CMD53_FUN(cmdData);
+    U32 fun = (U32)CMD53_FUN(cmdData);
+	return fun;
 }
 
 bool SdioCmd53::isBlockMode()
@@ -118,18 +119,18 @@ U32 SdioCmd53::getXferCount()
     return count;
 }
 
-const char* SdioCmd53Resp::getShortString()
+string* SdioCmd53Resp::getShortString()
 {
     char format[200] = {0};
 
     sprintf(format, "0x%012llX, CMD53 Resp", cmdData);
 
-    string str(format);
-    const char * chr = str.c_str();
-
-    return chr;
+    string *str = new string(format);
+    // const char * chr = str.c_str();
+    // return chr;
+    return str;
 }
-const char* SdioCmd53Resp::getDetailedString()
+string* SdioCmd53Resp::getDetailedString()
 {
     char dummy[1024] = {0};
     char format[1024] = {0};
@@ -171,8 +172,8 @@ const char* SdioCmd53Resp::getDetailedString()
     }
     
 
-    string str(format);
-    const char * chr = str.c_str();
-
-    return chr;
+    string *str = new string(format);
+    // const char * chr = str.c_str();
+    // return chr;
+    return str;
 }
