@@ -80,13 +80,13 @@ void SDIOAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
         {
             // only if we want sample numbers
             // sprintf(time_str, "%012lld %0.10f", frame.mStartingSampleInclusive,timeStamp);
-            sprintf(time_str, "%012lld", timeStamp);
+            sprintf(time_str, "%0.10f", timeStamp);
         }
         else
         {
             // only if we want sample numbers
             // sprintf(time_str, "%012lld %0.10f", frame.mStartingSampleInclusive,timeStamp);
-            sprintf(time_str, "%012lld", timeStamp);
+            sprintf(time_str, "%0.10f", timeStamp);
         }
 
         // if regular CMD line data

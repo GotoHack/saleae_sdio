@@ -92,8 +92,6 @@ void SDIOAnalyzer::WorkerThread()
         // std::cout << "Current Sample Number (b): " << currentSampleNo << "mCmd->GetBitState(): "<< mCmd->GetBitState() << std::endl;
 
 
-        
-
         // check if this is a command 53 ack from the card, we need to look for data
         if ( (CMD_VAL(cmdValue) == 53) && (CMD_DIR(cmdValue) == 0))
         {
@@ -202,9 +200,10 @@ U64 SDIOAnalyzer::AdvanceAllLinesToNextStartBit()
     // but we want to sample on the rising edge of the clock.  Advance the clock to
     // our sample number, check the clock, it should be low.  advance the clock to next edge
     mClock->AdvanceToAbsPosition(currentSampleNo);
-	if( mClock->GetBitState() == BIT_HIGH ) {
-		mClock->AdvanceToNextEdge();
-    }
+	// if( mClock->GetBitState() == BIT_HIGH ) {
+	// 	mClock->AdvanceToNextEdge();
+    // }
+    
     // now advance to rising edge
     mClock->AdvanceToNextEdge();
 

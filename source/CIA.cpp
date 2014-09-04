@@ -290,49 +290,111 @@ void CCCR::TupleChain::addDataToTuple(U64 data)
     regAddress = c52->getRegisterAddress();
     c_data = (U8)c52Resp->getData();
 
-    if (regAddress == cisAddress)
+    if (tupleComplete == false)
     {
-        // we are building the CIS now, this is the first step.  we need to extract data and setup our
-        // end addresses for the range checking, etc.
-        newTuplePending = true;
-        tuple = TUPLE(regAddress);
-        tuple.setTplCode(c_data);
-        tuples.push_back(tuple);
-
-    }
-    else if (regAddress == lastTupleAddress)
-    {
-        tuple = TUPLE(regAddress);
-        tuple.setTplCode(c_data);
-
-        if (c_data == 0xff)
+        if (regAddress == cisAddress)
         {
-            // done with tuple walk
-            tuple.setSize(0);
+            // we are building the CIS now, this is the first step.  we need to extract data and setup our
+            // end addresses for the range checking, etc.
+            newTuplePending = true;
+            tuple = TUPLE(regAddress);
+            tuple.setTplCode(c_data);
+            tuples.push_back(tuple);
+
+        }
+        else if (regAddress == lastTupleAddress)
+        {
+            tuple = TUPLE(regAddress);
+            tuple.setTplCode(c_data);
+
+            if (c_data == 0xff)
+            {
+                // done with tuple walk
+                tuple.setSize(0);
+                newTuplePending = false;
+                tupleComplete = true;
+            }
+            else
+            {
+                newTuplePending = true;
+            }
+            tuples.push_back(tuple);
+        }
+        else if ((regAddress < lastTupleAddress) && (regAddress > cisAddress))
+        {
+            //TUPLE t = tuples.front();
+            it--;
+            // examine in gdb using: plist it->body int, after the next call
+            it->addData(c_data);
         }
         else
         {
-            newTuplePending = true;
+            if (newTuplePending)
+            {
+                it--;
+                it->setSize(c_data);
+                newTuplePending = false;
+                lastTupleAddress = regAddress + c_data + 1;
+            }
         }
-        tuples.push_back(tuple);
-    }
-    else if ((regAddress < lastTupleAddress) && (regAddress > cisAddress))
-    {
-        //TUPLE t = tuples.front();
-        it--;
-        // examine in gdb using: plist it->body int, after the next call
-        it->addData(c_data);
     }
     else
     {
-        if (newTuplePending)
+        // in this case, we need to merely update our tuple
+        if (regAddress >= cisAddress && regAddress <= lastTupleAddress)
         {
-            it--;
-            it->setSize(c_data);
-            newTuplePending = false;
-            lastTupleAddress = regAddress + c_data + 1;
+            bool stop = false;
+            // we need to go through our tuple chain to update
+            it = tuples.begin();
+
+            while (stop == false && it != tuples.end())
+            {
+                // if this is the tuple code, verify it
+                if (regAddress == it->address)
+                {
+                    // we have a matching address w/ existing tuple
+                    // if the data doesn't match, just stop
+                    if (it->tplCode != c_data)
+                    {
+                        // don't update, just freak out
+                        stop = true;
+                    }
+					stop = true;
+                }
+
+                // if this is the tuple size, verify it as best we can
+                else if (regAddress == it->address + 1)
+                {
+                    if (it->size != c_data)
+                    {
+                        // don't update, just freak out
+                        stop = true;
+                    }
+					stop = true;
+                }
+
+                if ((regAddress >= it->address + 2) && (regAddress <= (it->address + it->size + 1)))
+                {
+                    list<U32>::iterator dataIt = it->body.begin();
+					// the tuple only has the data in the list, thus the first 2 bytes are encapsulated 
+					// in the class itself, so we have to work our way around it.  upon doing this,
+					// it seems not that optimal, but i'm tired of messing with this 
+                    int k = regAddress - (it->address + 2);
+                    int j;
+
+                    for (j = 0; j < k; j++)
+                    {
+                        dataIt++;
+                    }
+                    *dataIt = c_data;
+
+                    stop = true;
+                }
+                it++;
+            }
         }
     }
+
 }
 
 void CCCR::TupleChain::dump()

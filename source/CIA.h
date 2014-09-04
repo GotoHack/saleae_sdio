@@ -126,10 +126,11 @@ class CCCR
                 U32 lastTupleAddress;
                 U32 cisAddress;
                 bool newTuplePending;
+                bool tupleComplete;
                 list <TUPLE> tuples;
 
             public:
-                TupleChain() :lastTupleAddress(0), newTuplePending(false), tuples() {};
+                TupleChain() :lastTupleAddress(0), newTuplePending(false), tupleComplete(false), tuples() {};
                 void setCisAddress(U32 address);
                 void addDataToTuple(U64 data);
                 void dump();
