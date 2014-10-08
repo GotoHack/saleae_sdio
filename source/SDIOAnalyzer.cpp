@@ -27,8 +27,10 @@ void SDIOAnalyzer::WorkerThread()
     U64 cmdValue;
     U32 i;
     BitState cmdBitState;
+    U64 clkMeasureStart = 0;
+    U64 clkMeasureStop = 0;
+	U64 localNumSamplesInHalfClock = 0;
 
-    
 	SetAnalyzerResults( mResults.get() );
 	//mResults->AddChannelBubblesWillAppearOn( mSettings->mInputChannel );
 	mResults->AddChannelBubblesWillAppearOn( mSettings->mClockChannel );
@@ -59,6 +61,13 @@ void SDIOAnalyzer::WorkerThread()
         AdvanceAllLinesToNextStartBit();
         cmdData.Reset(&cmdValue, AnalyzerEnums::MsbFirst, 48);
 
+        // always setup the number of cycles in a half clock.  measure this
+        // during the read of a CMD word.  is necessary to do multiple times
+        // b/c the host can change the clock speed on us (but usually only once)
+		clkMeasureStart = 0;
+		clkMeasureStart = 0;
+		localNumSamplesInHalfClock = 0;
+
         // now we're at the start bit, we start using our clock as our sample generator
         for (i = 0; i < 48; i++)
         {
@@ -68,7 +77,17 @@ void SDIOAnalyzer::WorkerThread()
             
             // advance to next rising edge (i.e. full clock cycle)
             mClock->AdvanceToNextEdge();
+			clkMeasureStart = mClock->GetSampleNumber();
             mClock->AdvanceToNextEdge();
+			clkMeasureStop  = mClock->GetSampleNumber();
+			localNumSamplesInHalfClock = clkMeasureStop - clkMeasureStart;
+
+            // update the numSamplesInHalfClock if it is different from what we just
+            // calculated
+			if (localNumSamplesInHalfClock != numSamplesInHalfClock)
+			{
+				numSamplesInHalfClock = localNumSamplesInHalfClock;
+			}
 
             // now get our position, based on clock
             currentSampleNo = mClock->GetSampleNumber();
@@ -139,6 +158,17 @@ void SDIOAnalyzer::readCmd53DataLines()
 	DataBuilder dataData;
     U64 dataValue;
     U32 i;
+
+	// make sure we're on a falling edge of a clock
+	if (mClock->GetBitState() == BIT_HIGH)
+	{
+		mClock->AdvanceToNextEdge();
+		currentSampleNo = mClock->GetSampleNumber();
+		mData0->AdvanceToAbsPosition(currentSampleNo);
+		mData1->AdvanceToAbsPosition(currentSampleNo);
+		mData2->AdvanceToAbsPosition(currentSampleNo);
+		mData3->AdvanceToAbsPosition(currentSampleNo);
+	}
 
     frameStartSample = currentSampleNo - (numSamplesInHalfClock/2);
     // frameStartSample = currentSampleNo;
@@ -224,37 +254,77 @@ U64 SDIOAnalyzer::AdvanceAllLinesToNextStartBit()
 
 U64 SDIOAnalyzer::AdvanceDataLinesToStartBit()
 {
-    U64 clkMeasureStart = 0;
-    U64 clkMeasureStop = 0;
+    bool dataFallIsStartBit = false;
+
     // make sure we're on the start bit
 	if( mData0->GetBitState() == BIT_HIGH ) {
 		mData0->AdvanceToNextEdge();
+		currentSampleNo = mData0->GetSampleNumber();
     }
+    // now that we have the D0 start transition, we need to see if
+    while (mClock->GetSampleOfNextEdge() <= currentSampleNo)
+    {
+        mClock->AdvanceToNextEdge();
+    }
+    if (mClock->GetSampleNumber() == currentSampleNo)
+    {
+        dataFallIsStartBit = true;
+    }
+
 	if( mData1->GetBitState() == BIT_HIGH ) {
 		mData1->AdvanceToNextEdge();
+		if (mData1->GetSampleNumber() > currentSampleNo)
+		{
+			currentSampleNo = mData1->GetSampleNumber();
+			mData0->AdvanceToAbsPosition(currentSampleNo);
+            dataFallIsStartBit = true;
+		}
+
     }
 	if( mData2->GetBitState() == BIT_HIGH ) {
 		mData2->AdvanceToNextEdge();
+		if (mData2->GetSampleNumber() > currentSampleNo)
+		{
+			currentSampleNo = mData2->GetSampleNumber();
+			mData0->AdvanceToAbsPosition(currentSampleNo);
+			mData1->AdvanceToAbsPosition(currentSampleNo);
+            dataFallIsStartBit = true;
+		}
     }
 	if( mData3->GetBitState() == BIT_HIGH ) {
 		mData3->AdvanceToNextEdge();
+		if (mData3->GetSampleNumber() > currentSampleNo)
+		{
+			currentSampleNo = mData3->GetSampleNumber();
+			mData0->AdvanceToAbsPosition(currentSampleNo);
+			mData1->AdvanceToAbsPosition(currentSampleNo);
+			mData2->AdvanceToAbsPosition(currentSampleNo);
+            dataFallIsStartBit = true;
+		}
     }
-    // advance clock to our sample number, and then advance to the
-    // rising edge
-    currentSampleNo = mData0->GetSampleNumber();
-    mClock->AdvanceToAbsPosition(currentSampleNo);
 
-    if (mClock->GetBitState() == BIT_HIGH ) {
+    if (dataFallIsStartBit == true)
+    {
+		// rising
+		mClock->AdvanceToNextEdge();
+		//falling
 		mClock->AdvanceToNextEdge();
     }
-    // now advance to rising edge and get the number of samples in a half clock pulse
-    mClock->AdvanceToNextEdge();
-    clkMeasureStart = mClock->GetSampleNumber();
-    mClock->AdvanceToNextEdge();
-    clkMeasureStop  = mClock->GetSampleNumber();
-    mClock->AdvanceToNextEdge();
-    numSamplesInHalfClock = clkMeasureStop - clkMeasureStart;
-
+    else
+    {
+        if( mClock->GetBitState() == BIT_HIGH ) 
+        {
+            // goto falling
+            mClock->AdvanceToNextEdge();
+        }
+            
+		// rising
+		mClock->AdvanceToNextEdge();
+		//falling
+		mClock->AdvanceToNextEdge();
+		// //rising
+		// mClock->AdvanceToNextEdge();
+    }
     currentSampleNo = mClock->GetSampleNumber();
     mData0->AdvanceToAbsPosition(currentSampleNo);
     mData1->AdvanceToAbsPosition(currentSampleNo);
