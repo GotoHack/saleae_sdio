@@ -8,17 +8,9 @@ SDIOAnalyzerSettings::SDIOAnalyzerSettings()
  	mD0Channel( UNDEFINED_CHANNEL ),
  	mD1Channel( UNDEFINED_CHANNEL ),
  	mD2Channel( UNDEFINED_CHANNEL ),
- 	mD3Channel( UNDEFINED_CHANNEL )
+ 	mD3Channel( UNDEFINED_CHANNEL ),
+    mSampleRead (FALLING_EDGE)
 {
-	// mInputChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
-	// mInputChannelInterface->SetTitleAndTooltip( "Serial", "Standard SDIO Analyzer" );
-	// mInputChannelInterface->SetChannel( mInputChannel );
-
-	// mBitRateInterface.reset( new AnalyzerSettingInterfaceInteger() );
-	// mBitRateInterface->SetTitleAndTooltip( "Bit Rate (Bits/S)",  "Specify the bit rate in bits per second." );
-	// mBitRateInterface->SetMax( 6000000 );
-	// mBitRateInterface->SetMin( 1 );
-	// mBitRateInterface->SetInteger( mBitRate );
 
 	mClockChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
 	mClockChannelInterface->SetTitleAndTooltip( "Clock", "Standard SDIO Analyzer" );
@@ -44,8 +36,12 @@ SDIOAnalyzerSettings::SDIOAnalyzerSettings()
 	mD3ChannelInterface->SetTitleAndTooltip( "Data 3", "Standard SDIO Analyzer" );
 	mD3ChannelInterface->SetChannel( mD3Channel );
 
-	// AddInterface( mInputChannelInterface.get() );
-	// AddInterface( mBitRateInterface.get() );
+	mSampleReadInterface.reset( new AnalyzerSettingInterfaceNumberList() );
+	mSampleReadInterface->SetTitleAndTooltip( "Sample On", "Determines if sample on rising or falling edge" );
+	mSampleReadInterface->AddNumber( FALLING_EDGE, "Read Samples on Falling clock edge", "Read Samples on Falling clock edge" );
+	mSampleReadInterface->AddNumber( RISING_EDGE, "Read Samples on Rising clock edge", "Read Samples on Rising clock edge" );
+	mSampleReadInterface->SetNumber( mSampleRead );
+
 
 	AddInterface( mClockChannelInterface.get() );
 	AddInterface( mCmdChannelInterface.get() );
@@ -53,6 +49,7 @@ SDIOAnalyzerSettings::SDIOAnalyzerSettings()
 	AddInterface( mD1ChannelInterface.get() );
 	AddInterface( mD2ChannelInterface.get() );
 	AddInterface( mD3ChannelInterface.get() );
+	AddInterface( mSampleReadInterface.get() );
 
 	AddExportOption   ( SDIO_EXPORT_FULL, "Export as text/csv file" );
 	AddExportExtension( SDIO_EXPORT_FULL, "text", "txt" );
@@ -91,6 +88,7 @@ bool SDIOAnalyzerSettings::SetSettingsFromInterfaces()
 	mD1Channel = mD1ChannelInterface->GetChannel();
 	mD2Channel = mD2ChannelInterface->GetChannel();
 	mD3Channel = mD3ChannelInterface->GetChannel();
+	mSampleRead = SampleEdge( U32(mSampleReadInterface->GetNumber() ) );
 
 	ClearChannels();
 	// AddChannel( mInputChannel, "Original", true );
@@ -115,6 +113,7 @@ void SDIOAnalyzerSettings::UpdateInterfacesFromSettings()
 	mD1ChannelInterface->SetChannel( mD1Channel );
 	mD2ChannelInterface->SetChannel( mD2Channel );
 	mD3ChannelInterface->SetChannel( mD3Channel );
+    mSampleReadInterface->SetNumber( mSampleRead );
 }
 
 void SDIOAnalyzerSettings::LoadSettings( const char* settings )
@@ -131,6 +130,7 @@ void SDIOAnalyzerSettings::LoadSettings( const char* settings )
 	text_archive >> mD1Channel;
 	text_archive >> mD2Channel;
 	text_archive >> mD3Channel;
+	text_archive >> *(U32*)&mSampleRead;
 
 	ClearChannels();
 	//AddChannel( mInputChannel, "Original", true );
@@ -157,6 +157,7 @@ const char* SDIOAnalyzerSettings::SaveSettings()
 	text_archive << mD1Channel;
 	text_archive << mD2Channel;
 	text_archive << mD3Channel;
+	text_archive << mSampleRead;
 
 	return SetReturnString( text_archive.GetString() );
 }

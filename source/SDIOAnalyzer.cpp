@@ -4,6 +4,7 @@
 #include <AnalyzerChannelData.h>
 #include <AnalyzerHelpers.h>
 #include <iostream>
+#include <stdio.h>
 
 SDIOAnalyzer::SDIOAnalyzer()
 :	Analyzer(),  
@@ -159,16 +160,12 @@ void SDIOAnalyzer::readCmd53DataLines()
     U64 dataValue;
     U32 i;
 
-	// make sure we're on a falling edge of a clock
-	if (mClock->GetBitState() == BIT_HIGH)
-	{
-		mClock->AdvanceToNextEdge();
-		currentSampleNo = mClock->GetSampleNumber();
-		mData0->AdvanceToAbsPosition(currentSampleNo);
-		mData1->AdvanceToAbsPosition(currentSampleNo);
-		mData2->AdvanceToAbsPosition(currentSampleNo);
-		mData3->AdvanceToAbsPosition(currentSampleNo);
-	}
+    // advance all the data lines to our clock
+    currentSampleNo = mClock->GetSampleNumber();
+    mData0->AdvanceToAbsPosition(currentSampleNo);
+    mData1->AdvanceToAbsPosition(currentSampleNo);
+    mData2->AdvanceToAbsPosition(currentSampleNo);
+    mData3->AdvanceToAbsPosition(currentSampleNo);
 
     frameStartSample = currentSampleNo - (numSamplesInHalfClock/2);
     // frameStartSample = currentSampleNo;
@@ -260,6 +257,7 @@ U64 SDIOAnalyzer::AdvanceDataLinesToStartBit()
 	if( mData0->GetBitState() == BIT_HIGH ) {
 		mData0->AdvanceToNextEdge();
 		currentSampleNo = mData0->GetSampleNumber();
+        // printf("AdvanceDataLinesToStartBit D0 Sample number: %lld (0x%llx)\n", currentSampleNo, currentSampleNo);
     }
     // now that we have the D0 start transition, we need to see if
     while (mClock->GetSampleOfNextEdge() <= currentSampleNo)
@@ -268,7 +266,11 @@ U64 SDIOAnalyzer::AdvanceDataLinesToStartBit()
     }
     if (mClock->GetSampleNumber() == currentSampleNo)
     {
-        dataFallIsStartBit = true;
+        if (mClock->GetBitState() == BIT_LOW)
+        {
+            dataFallIsStartBit = true;
+            // std::cout << "AdvanceDataLinesToStartBit ------ CLOCK sample is same as D0 sample\n";
+        }
     }
 
 	if( mData1->GetBitState() == BIT_HIGH ) {
@@ -305,10 +307,7 @@ U64 SDIOAnalyzer::AdvanceDataLinesToStartBit()
 
     if (dataFallIsStartBit == true)
     {
-		// rising
-		mClock->AdvanceToNextEdge();
-		//falling
-		mClock->AdvanceToNextEdge();
+        // std::cout << "AdvanceDataLinesToStartBit ------ dataFallIsStartBit == true\n";
     }
     else
     {
@@ -317,14 +316,27 @@ U64 SDIOAnalyzer::AdvanceDataLinesToStartBit()
             // goto falling
             mClock->AdvanceToNextEdge();
         }
-            
-		// rising
-		mClock->AdvanceToNextEdge();
-		//falling
-		mClock->AdvanceToNextEdge();
-		// //rising
-		// mClock->AdvanceToNextEdge();
     }
+
+    if (mSettings->mSampleRead == RISING_EDGE)
+    {
+        // printf("----------------------------- rising edge\n");
+        // rising for start bit
+        mClock->AdvanceToNextEdge();
+        // falling for b0
+        mClock->AdvanceToNextEdge();
+        // rising for b0
+        mClock->AdvanceToNextEdge();
+    }
+    else
+    {
+        // printf("----------------------------- falling edge\n");
+        // rising for start bit
+        mClock->AdvanceToNextEdge();
+        // falling for b0
+        mClock->AdvanceToNextEdge();
+    }
+
     currentSampleNo = mClock->GetSampleNumber();
     mData0->AdvanceToAbsPosition(currentSampleNo);
     mData1->AdvanceToAbsPosition(currentSampleNo);

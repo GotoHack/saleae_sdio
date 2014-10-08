@@ -8,6 +8,8 @@
 #define SDIO_EXPORT_SHORT        1
 #define SDIO_EXPORT_DATA_ONLY    2
 
+enum SampleEdge { FALLING_EDGE, RISING_EDGE };
+
 class SDIOAnalyzerSettings : public AnalyzerSettings
 {
 public:
@@ -28,6 +30,7 @@ public:
 	Channel mD1Channel;     //d
 	Channel mD2Channel;     //e
 	Channel mD3Channel;     //f
+    enum SampleEdge mSampleRead;
 
 protected:
 	// std::auto_ptr< AnalyzerSettingInterfaceChannel >	mInputChannelInterface;
@@ -39,6 +42,7 @@ protected:
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mD1ChannelInterface;
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mD2ChannelInterface;
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mD3ChannelInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceNumberList >	mSampleReadInterface;
 };
 
 #endif //SDIO_ANALYZER_SETTINGS
