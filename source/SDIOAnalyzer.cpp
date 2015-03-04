@@ -6,6 +6,15 @@
 #include <iostream>
 #include <stdio.h>
 
+/* if the analyzer crashes, look at the root directory of the install
+ * for a .txt file, and that will give you the assertion, and 
+ * then use the debug statements.  there is one left in this revision
+ * merely search for 'logfile'
+ */
+#ifdef DEBUG_JONCO
+FILE* logfile;
+#endif
+
 SDIOAnalyzer::SDIOAnalyzer()
 :	Analyzer(),  
 	mSettings( new SDIOAnalyzerSettings() ),
@@ -13,6 +22,9 @@ SDIOAnalyzer::SDIOAnalyzer()
     currentSampleNo(0),
     numSamplesInHalfClock(0)
 {
+#ifdef DEBUG_JONCO
+    logfile=fopen("jonco.log", "a+");
+#endif
 	SetAnalyzerSettings( mSettings.get() );
 }
 
@@ -92,6 +104,9 @@ void SDIOAnalyzer::WorkerThread()
 
             // now get our position, based on clock
             currentSampleNo = mClock->GetSampleNumber();
+#ifdef DEBUG_JONCO
+            fprintf(logfile, "1");
+#endif
             mCmd->AdvanceToAbsPosition(currentSampleNo);
 
         }
@@ -213,16 +228,25 @@ Frame SDIOAnalyzer::ParseCurrentCommand(U64 cmdValue, U64 currentSample, U8 type
 
 U64 SDIOAnalyzer::AdvanceAllLinesToNextStartBit()
 {
-    // make sure we're on a high bit
-	if( mCmd->GetBitState() == BIT_LOW ) {
-		mCmd->AdvanceToNextEdge();
+    U32 flag = 0;
+    while (!flag)
+    {
+        // make sure we're on a high bit
+        if( mCmd->GetBitState() == BIT_LOW ) {
+            mCmd->AdvanceToNextEdge();
+        }
+
+        // now advance to start bit which is a falling bit
+        mCmd->AdvanceToNextEdge();
+
+        currentSampleNo = mCmd->GetSampleNumber();
+        frameStartSample = currentSampleNo;
+
+        if (mClock->GetSampleNumber() < currentSampleNo)
+        {
+            flag = 1;
+        }
     }
-
-    // now advance to start bit which is a falling bit
-    mCmd->AdvanceToNextEdge();
-
-    currentSampleNo = mCmd->GetSampleNumber();
-    frameStartSample = currentSampleNo;
 
     // but we want to sample on the rising edge of the clock.  Advance the clock to
     // our sample number, check the clock, it should be low.  advance the clock to next edge
