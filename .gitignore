@@ -20,10 +20,11 @@
 *.out
 *.app
 
-.*.swp
+.*.sw*
 *.swp
 debug
 release
 tags
 *cscope.out
 *cscope.files
+.sw*
