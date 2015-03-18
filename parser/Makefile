@@ -1,4 +1,5 @@
-MY_INCLUDE= -I ../../include/
+MY_INCLUDE= -I ../../include/ -I ../source
+VPATH=../source
 
 OBJECTS= CIA.o \
 	SdioCmd52.o \

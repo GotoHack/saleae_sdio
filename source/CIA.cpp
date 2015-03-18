@@ -146,6 +146,9 @@ bool CCCR::HandleCmd52Request(U64 data)
         lastHostCmd52 = 0;
     }
     // make sure we are using funtion 0
+    // actaully, scratch that, we pretty much stuff every CMD52 request into the lastHostCmd52
+    // so long as its tied to Function 0
+    // leaving logic here to remind me of documentation
     if (c52->getFunctionNumber() == 0)
     {
         // make sure the register address is within CCCR bounds
@@ -153,6 +156,8 @@ bool CCCR::HandleCmd52Request(U64 data)
         {
             lastHostCmd52 = c52;
         }
+        // check if this is an FBR.  
+        // they are addressed from 0x100--0x1FF for F1, 0x200--0x2ff for F2, etc
         else if (address >= 0x100 && address <= 0x7ff)
         {
             lastHostCmd52 = c52;
@@ -163,6 +168,13 @@ bool CCCR::HandleCmd52Request(U64 data)
             lastHostCmd52 = c52;
         }
     }
+    else
+    {
+        cout <<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+        cout <<"!!!!!!!!!           CMD52 for something other F0         !!!!!!!!!!!!!!!!!!!!!!!\n";
+        cout <<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+    }
+
 
     return true;
 }
@@ -179,6 +191,8 @@ bool CCCR::HandleCmd52Response(U64 data)
     if (lastHostCmd52 != 0)
     {
         // handle function 0 stuff
+        // Actaully all lastHostCmd52's should be Function 0, but 
+        // just make sure
         if (lastHostCmd52->getFunctionNumber() == 0)
         {
             regAddress = lastHostCmd52->getRegisterAddress();
@@ -186,6 +200,8 @@ bool CCCR::HandleCmd52Response(U64 data)
 
             if (regAddress >= CCCR_ADDRESS_START && regAddress <= CCCR_ADDRESS_END )
             {
+                // indicate to the dumper, that CCCR data has been read/written,
+                // that way we don't dump uninitialized garbage
                 cccrDataPopulated = true;
                 cccrData_ptr[regAddress] = c_data;
             }
@@ -267,7 +283,16 @@ void CCCR::DumpFBRTable(std::ostream &stream)
 U32 CCCR::getCisAddress()
 {
     U32 address = 0;
-    address = (cccr_data.Common_CIS_Pointer[0] << 0) | (cccr_data.Common_CIS_Pointer[1] << 8) | (cccr_data.Common_CIS_Pointer[2] << 16);
+    if ( ( cccr_data.Common_CIS_Pointer[0] == (CIA_PTR_INIT_VAL ) & 0xff)       ||
+         ( cccr_data.Common_CIS_Pointer[1] == (CIA_PTR_INIT_VAL >> 8) & 0xff)   ||
+         ( cccr_data.Common_CIS_Pointer[2] == (CIA_PTR_INIT_VAL >> 16) & 0xff)  )
+    {
+        address = CIA_PTR_INIT_VAL;
+    }
+    else
+    {
+        address = (cccr_data.Common_CIS_Pointer[0] << 0) | (cccr_data.Common_CIS_Pointer[1] << 8) | (cccr_data.Common_CIS_Pointer[2] << 16);
+    }
     return address;
 }
 
@@ -489,7 +514,6 @@ void CCCR::FBR::addData(U64 data)
     // Now, we need to check if this falls into the CIS portion of the FBR.
     // The FBR contains a ptr to the CIS, and this is our jumping off point.
     // we maintain the initial and the last address to use for our range checkers
-
     cisAddress = getCisAddress();
 
     // make sure CIS Address has been set to a value, and not the initialization value
@@ -504,7 +528,16 @@ void CCCR::FBR::addData(U64 data)
 U32 CCCR::FBR::getCisAddress(void)
 {
     U32 address = 0;
-    address = (fbr_data.CIS_ptr[0] << 0) | (fbr_data.CIS_ptr[1] << 8) | (fbr_data.CIS_ptr[2] << 16);
+    if ( ( fbr_data.CIS_ptr[0] == (CIA_PTR_INIT_VAL ) & 0xff)       ||
+         ( fbr_data.CIS_ptr[1] == (CIA_PTR_INIT_VAL >> 8) & 0xff)   ||
+         ( fbr_data.CIS_ptr[2] == (CIA_PTR_INIT_VAL >> 16) & 0xff)  )
+    {
+        address = CIA_PTR_INIT_VAL;
+    }
+    else
+    {
+        address = (fbr_data.CIS_ptr[0] << 0) | (fbr_data.CIS_ptr[1] << 8) | (fbr_data.CIS_ptr[2] << 16);
+    }
     return address;
 }
 

@@ -73,10 +73,10 @@ string* parse_CMD52_COMMAND(U64 val)
     stream  << "Function: " << CMD52_FUN(val)<<" ";
     stream  << "RAW: " << CMD52_RAW(val)<<" ";
 
-    sprintf(format, "0x%05lX", CMD52_ADDRESS(val));
+    sprintf(format, "0x%05llX", CMD52_ADDRESS(val));
     stream << "Address: " << format << " ";
 
-    sprintf(format, "0x%02lX", CMD52_DATA(val));
+    sprintf(format, "0x%02llX", CMD52_DATA(val));
     stream << "Data: " << format << " ";
 
     string *str = new string (stream.str());
@@ -140,7 +140,7 @@ string* parse_CMD52_RESP(U64 val)
     }
 
 
-    sprintf(format, "0x%02lX", CMD52_RESP_DATA(val));
+    sprintf(format, "0x%02llX", CMD52_RESP_DATA(val));
     stream << "Data: " << format << " ";
 
     string *str = new string (stream.str());
@@ -200,7 +200,7 @@ string* parse_CMD53_COMMAND(U64 val)
         stream  << "(Multi byte R/W to incrementing address) ";
     }
 
-    sprintf(format, "0x%05lX", CMD53_ADDRESS(val));
+    sprintf(format, "0x%05llX", CMD53_ADDRESS(val));
     stream << "Address: " << format << " ";
 
     stream  << "Byte/Block Count: " << hex << CMD53_COUNT(val)<<" ";
@@ -411,7 +411,7 @@ string* parse_CMD3_RESP(U64 val)
     unsigned int status = CMD3_RESP_STATUS(val);
 
     stream << " CMD3 Response: ";
-    sprintf(format, "RCA: 0x%04lX", CMD3_RESP_RCA(val));
+    sprintf(format, "RCA: 0x%04llX", CMD3_RESP_RCA(val));
     stream << format << ", ";
 
     sprintf(format, "0x%04X", status);
