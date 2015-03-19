@@ -38,6 +38,10 @@ using namespace std;
 #define CIS_AREA_START      0x1000
 #define CIS_AREA_END        0x7FFF
 
+#define CISTPL_MANFID       0x20
+#define CISTPL_FUNCID       0x21
+#define CISTPL_FUNCE        0x22
+
 typedef struct PACKED 
 {
     unsigned char CCCR_SDIO_Revision;
@@ -102,8 +106,15 @@ class TUPLE
         void setTplCode(U32 code) {tplCode = code;}
         void setSize(U32 sz) {size = sz;}
         void addData(U32 data) { body.push_back(data);}
-        void dump();
-        void dump(std::ostream &stream);
+        void dump(bool cisTupleFlag = false);
+        void dump(std::ostream &stream, bool cisTupleFlag = false);
+    private:
+        void dumpBody(std::ostream &stream, bool cisTupleFlag = false, int i=0);
+        void dumpBody_MANFID(std::ostream &stream, bool cisTupleFlag = false, int i=0);
+        void dumpBody_FUNCID(std::ostream &stream, bool cisTupleFlag = false, int i=0);
+        void dumpBody_FUNCE(std::ostream &stream, bool cisTupleFlag = false, int i=0);
+        void dumpBody_GENERIC(std::ostream &stream, bool cisTupleFlag = false, int i=0, char *strings[]=0, int maxStrings=0);
+
 
 };
 
@@ -128,13 +139,15 @@ class CCCR
                 bool newTuplePending;
                 bool tupleComplete;
                 list <TUPLE> tuples;
+                bool cisTupleFlag;
 
             public:
-                TupleChain() :lastTupleAddress(0), newTuplePending(false), tupleComplete(false), tuples() {};
+                TupleChain() :lastTupleAddress(0), newTuplePending(false), tupleComplete(false), cisTupleFlag(false), tuples() {};
                 void setCisAddress(U32 address);
                 void addDataToTuple(U64 data);
                 void dump();
                 void dump(std::ostream &stream);
+                void setCisTupleFlag() {cisTupleFlag = true;};
         };
 
         class FBR

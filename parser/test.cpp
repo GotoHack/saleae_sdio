@@ -72,7 +72,7 @@ void parse(vector <U64>* vec)
         }
         else
         {
-            printf("0x%012llX\n", tmpData);
+            cout << tmp->getDetailedString()->c_str()<<endl;
         }
     }
 
