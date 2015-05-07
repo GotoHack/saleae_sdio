@@ -43,6 +43,7 @@ void SDIOAnalyzer::WorkerThread()
     U64 clkMeasureStart = 0;
     U64 clkMeasureStop = 0;
 	U64 localNumSamplesInHalfClock = 0;
+    U32 cmd53Bytes = 0;
 
 	SetAnalyzerResults( mResults.get() );
 	//mResults->AddChannelBubblesWillAppearOn( mSettings->mInputChannel );
@@ -68,6 +69,7 @@ void SDIOAnalyzer::WorkerThread()
 	// U32 samples_per_bit = mSampleRateHz / mSettings->mBitRate;
 	// U32 samples_to_first_center_of_first_data_bit = U32( 1.5 * double( mSampleRateHz ) / double( mSettings->mBitRate ) );
 
+    cmd53Bytes = 0;
 	for( ; ; )
 	{
         // we know cmd is high, wait till the next transition, which should be the start bit
@@ -127,20 +129,48 @@ void SDIOAnalyzer::WorkerThread()
         // std::cout << "Current Sample Number (b): " << currentSampleNo << "mCmd->GetBitState(): "<< mCmd->GetBitState() << std::endl;
 
 
+        if ( (CMD_VAL(cmdValue) == 53) && (CMD_DIR(cmdValue) == 1))
+        {
+            int block_mode = (cmdValue >> 35) & 0x1;
+            if ( block_mode)
+            {
+                cmd53Bytes = (U32)-1;
+            }
+            else
+            {
+                cmd53Bytes = (cmdValue >> 8) & 0x1ff;
+            }
+        }
         // check if this is a command 53 ack from the card, we need to look for data
         if ( (CMD_VAL(cmdValue) == 53) && (CMD_DIR(cmdValue) == 0))
         {
-            readCmd53Data();
+            readCmd53Data(cmd53Bytes);
+
+            // clear out the num of cmd53Bytes, as we've just handled it
+            cmd53Bytes = 0;
         }
 	}
 }
-void SDIOAnalyzer::readCmd53Data()
+void SDIOAnalyzer::readCmd53Data(U32 numBytes)
 {
     // for now assume we are 4 bit.  we need a setting to choose 1/4 bit
     U64 absoluteLastSample = (U64)-1;
     if (mCmd->DoMoreTransitionsExistInCurrentData())
     {
+
+        U64 tmpSample = 0;
         absoluteLastSample = mCmd->GetSampleOfNextEdge();	//without moving, get the sample of the next transition. 
+        tmpSample = mData0->GetSampleOfNextEdge();
+        // check to see if this is a blip on the command line, if so, we'll just assume that
+        // the absoluteLastSample is numBytes * 2 * numSamplesInHalfClock
+        if (absoluteLastSample < (tmpSample + 2 * numSamplesInHalfClock))
+        {
+            if ((numBytes > 0) && (numBytes < 0x1ff))
+            {
+                absoluteLastSample += numBytes * 2 * numSamplesInHalfClock;
+            }
+        }
+        
 
         // std::cout << "currentSampleNo: " << currentSampleNo << ", absoluteLastSample: "<< absoluteLastSample<< std::endl;
         // move data lines to start bit
